@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''Main function for UCI letter and spam datasets.
+'''Main function for UCI letter and spam datasets. //SW
 '''
 
 # Necessary packages
