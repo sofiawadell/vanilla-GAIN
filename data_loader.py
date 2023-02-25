@@ -14,6 +14,8 @@
 
 '''Data loader for UCI letter, spam and MNIST datasets.
 '''
+# Import datasets
+from datasets import datasets
 
 # Necessary packages
 import numpy as np
@@ -35,12 +37,14 @@ def data_loader (data_name, miss_rate):
   '''
   
   # Load data
-  if data_name in ['letter', 'spam']:
-    file_name = 'data/'+data_name+'.csv'
+  if data_name in datasets.keys():
+    file_name = 'preprocessed_data/'+data_name+'.csv'
     data_x = np.loadtxt(file_name, delimiter=",", skiprows=1)
   elif data_name == 'mnist':
     (data_x, _), _ = mnist.load_data()
     data_x = np.reshape(np.asarray(data_x), [60000, 28*28]).astype(float)
+  else:
+    ValueError("Dataset not found")
 
   # Parameters
   no, dim = data_x.shape

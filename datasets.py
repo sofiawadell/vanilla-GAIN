@@ -1,6 +1,51 @@
 from typing import Any, Dict
 
 datasets: Dict[str, Dict[str, Any]] = {
+    "credit": {
+        "name": "credit",
+        "url": "https://archive.ics.uci.edu/ml/datasets/default+of+credit+card+clients",
+        "columns": { 
+            "LIMIT_BAL": "numerical",
+            "SEX": "categorical",
+            "EDUCATION": "categorical",
+            "MARRIAGE": "categorical",
+            "AGE": "numerical",
+            "PAY_0": "categorical",
+            "PAY_2": "categorical",
+            "PAY_3": "categorical",
+            "PAY_4": "categorical",
+            "PAY_5": "categorical",
+            "PAY_6": "categorical",
+            "BILL_AMT1": "numerical",
+            "BILL_AMT2": "numerical",
+            "BILL_AMT3": "numerical",
+            "BILL_AMT4": "numerical",
+            "BILL_AMT5": "numerical",
+            "BILL_AMT6": "numerical",
+            "PAY_AMT1": "numerical",
+            "PAY_AMT2": "numerical",
+            "PAY_AMT3": "numerical",
+            "PAY_AMT4": "numerical",
+            "PAY_AMT5": "numerical",
+            "PAY_AMT6": "numerical",
+            },
+        "target": "default payment next month",
+        "num_cols": ['LIMIT_BAL', 'AGE','BILL_AMT1', 'BILL_AMT2', 'BILL_AMT3', 'BILL_AMT4', 'BILL_AMT5', 'BILL_AMT6',
+                     'PAY_AMT1', 'PAY_AMT2', 'PAY_AMT3', 'PAY_AMT4', 'PAY_AMT5', 'PAY_AMT6' ], 
+        #"cat_cols": ['SEX', 'EDUCATION', 'MARRIAGE', 'PAY_0', 'PAY_2','PAY_3','PAY_4','PAY_5','PAY_6'],
+        "cat_cols": {
+            "SEX": 2,
+            "EDUCATION": 6, 
+            "MARRIAGE": 4, 
+            "PAY_0": 11, 
+            "PAY_2": 11, 
+            "PAY_3": 11, 
+            "PAY_4": 11, 
+            "PAY_5": 11, 
+            "PAY_6": 11, 
+            },
+        "drop_cols": ['ID']
+        }, 
     "letter": {
         "name": "letter",
         "url": "https://archive.ics.uci.edu/ml/datasets/letter+recognition",
@@ -27,9 +72,6 @@ datasets: Dict[str, Dict[str, Any]] = {
                      'col12', 'col13','col14', 'col15','col16', 'col17'], 
         "cat_cols": [],
         }, 
-    
- 
-    
     "adult": {
         "name": "adult",
         "url": "https://www.kaggle.com/datasets/uciml/adult-census-income",
@@ -139,7 +181,7 @@ datasets: Dict[str, Dict[str, Any]] = {
             "abs_title_subjectivity": "numerical",
             "abs_title_sentiment_polarity": "numerical",  
             },
-        "target": "shares",
+        "target": 'shares',
         "drop_cols": ['url', 'timedelta'],
         "num_cols": ['n_tokens_title','n_tokens_content','n_unique_tokens','n_non_stop_words','n_non_stop_unique_tokens','num_hrefs','num_self_hrefs','num_imgs','num_videos','average_token_length',
                      'num_keywords', 'kw_min_min','kw_max_min','kw_avg_min','kw_min_max','kw_max_max','kw_avg_max','kw_min_avg','kw_max_avg','kw_avg_avg','self_reference_min_shares','self_reference_max_shares',
@@ -148,5 +190,16 @@ datasets: Dict[str, Dict[str, Any]] = {
                      'abs_title_subjectivity','abs_title_sentiment_polarity'], 
         "cat_cols": ['data_channel', 'weekday', 'is_weekend']
         }, 
-
+        "basic_test_coded": {
+        "columns": { 
+            "sex": "categorical",
+            "age": "numerical",
+            "color": "categorical",
+            },
+        "num_cols": ['age'], 
+        "cat_cols": {
+            "sex": 2,
+            "color": 4
+            },
+        },
 }
