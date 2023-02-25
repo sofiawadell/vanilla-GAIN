@@ -23,7 +23,7 @@ Contact: jsyoon0823@gmail.com
 # Necessary packages
 #import tensorflow as tf
 ##IF USING TF 2 use following import to still use TF < 2.0 Functionalities
-import tensorflow.compat.v1 as tf
+import tensorflow._api.v2.compat.v1 as tf
 tf.disable_v2_behavior()
 
 import numpy as np
