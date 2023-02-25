@@ -23,7 +23,9 @@
 (7) uniform_sampler: sample uniform random variables
 (8) sample_batch_index: sample random batch index
 '''
- 
+# Import datasets information
+from datasets import datasets
+
 # Necessary packages
 import numpy as np
 #import tensorflow as tf
@@ -125,7 +127,7 @@ def rounding (imputed_data, data_x):
   return rounded_data
 
 
-def rmse_loss (ori_data, imputed_data, data_m):
+def rmse_loss (ori_data, imputed_data, data_m, data_name):
   '''Compute RMSE loss between ori_data and imputed_data
   
   Args:
@@ -136,17 +138,24 @@ def rmse_loss (ori_data, imputed_data, data_m):
   Returns:
     - rmse: Root Mean Squared Error
   '''
+
+  # Find number of numerical columns
+  no_of_num_cols = len(datasets[data_name]["num_cols"])
   
-  ori_data, norm_parameters = normalization(ori_data)
-  imputed_data, _ = normalization(imputed_data, norm_parameters)
-    
-  # Only for missing values
-  nominator = np.sum(((1-data_m) * ori_data - (1-data_m) * imputed_data)**2)
-  denominator = np.sum(1-data_m)
+  # Extract only the numerical columns
+  ori_data_num = ori_data[:, :no_of_num_cols]
+  imputed_data_num = imputed_data[:, :no_of_num_cols]
+  data_m_num = data_m[:, :no_of_num_cols]
   
-  rmse = np.sqrt(nominator/float(denominator))
+  # RMSE numerical 
+  ori_data_num, norm_parameters = normalization(ori_data_num)
+  imputed_data_num, _ = normalization(imputed_data_num, norm_parameters)  
+  nominator = np.sum(((1-data_m_num) * ori_data_num - (1-data_m_num) * imputed_data_num)**2)
+  denominator = np.sum(1-data_m_num)
   
-  return rmse
+  rmse_num = np.sqrt(nominator/float(denominator))
+  
+  return rmse_num
 
 
 def xavier_init(size):
@@ -210,3 +219,26 @@ def sample_batch_index(total, batch_size):
   
 
   
+############## ORIGINAL RMSE CODE ##############################
+
+'''def rmse_loss (ori_data, imputed_data, data_m):
+  Compute RMSE loss between ori_data and imputed_data
+  
+  Args:
+    - ori_data: original data without missing values
+    - imputed_data: imputed data
+    - data_m: indicator matrix for missingness
+    
+  Returns:
+    - rmse: Root Mean Squared Error
+  
+  ori_data, norm_parameters = normalization(ori_data)
+  imputed_data, _ = normalization(imputed_data, norm_parameters)
+    
+  # Only for missing values
+  nominator = np.sum(((1-data_m) * ori_data - (1-data_m) * imputed_data)**2)
+  denominator = np.sum(1-data_m)
+  
+  rmse = np.sqrt(nominator/float(denominator))
+  
+  return rmse'''
