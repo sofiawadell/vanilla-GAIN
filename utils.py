@@ -126,9 +126,8 @@ def rounding (imputed_data, data_x):
       
   return rounded_data
 
-
-def rmse_loss (ori_data, imputed_data, data_m, data_name):
-  '''Compute RMSE loss between ori_data and imputed_data
+def rmse_loss(ori_data, imputed_data, data_m, data_name):
+  '''Compute RMSE loss between ori_data and imputed_data for numerical variables
   
   Args:
     - ori_data: original data without missing values
@@ -140,12 +139,12 @@ def rmse_loss (ori_data, imputed_data, data_m, data_name):
   '''
 
   # Find number of numerical columns
-  no_of_num_cols = len(datasets[data_name]["num_cols"])
+  N_num_cols = len(datasets[data_name]["num_cols"])
   
   # Extract only the numerical columns
-  ori_data_num = ori_data[:, :no_of_num_cols]
-  imputed_data_num = imputed_data[:, :no_of_num_cols]
-  data_m_num = data_m[:, :no_of_num_cols]
+  ori_data_num = ori_data[:, :N_num_cols]
+  imputed_data_num = imputed_data[:, :N_num_cols]
+  data_m_num = data_m[:, :N_num_cols]
   
   # RMSE numerical 
   ori_data_num, norm_parameters = normalization(ori_data_num)
@@ -157,6 +156,37 @@ def rmse_loss (ori_data, imputed_data, data_m, data_name):
   
   return rmse_num
 
+######## NEW METHOD ######################
+def pfc(ori_data, imputed_data, data_m, data_name): # No taking into consideration category belonging now, to be fixed
+  '''Compute PFC between ori_data and imputed_data
+  
+  Args:
+    - ori_data: original data without missing values
+    - imputed_data: imputed data
+    - data_m: indicator matrix for missingness
+    
+  Returns:
+    - pfc: Proportion Falsely Classified
+  '''
+  # Find number of columns
+  N_num_cols = len(datasets[data_name]["num_cols"])   # Find number of numerical columns
+  N_cat_cols = len(datasets[data_name]["cat_cols"]) # Find number of categorical columns
+  
+  # Extract only the categorical columns
+  ori_data_cat = ori_data[:, N_num_cols:]
+  imputed_data_cat = imputed_data[:, N_num_cols:]
+  data_m_cat = data_m[:, N_num_cols:]
+
+  data_m_bool = ~data_m_cat.astype(bool) # True indicates missing value, False indicates non-missing value
+
+  N_missing = np.count_nonzero(data_m_cat == 0) # 0 = missing value
+  N_correct = np.sum(ori_data_cat[data_m_bool] == imputed_data_cat[data_m_bool])
+
+  # Calculate PFC
+  pfc = 1 - (N_correct/N_missing)
+  
+  return pfc
+######## NEW METHOD ######################
 
 def xavier_init(size):
   '''Xavier initialization.
