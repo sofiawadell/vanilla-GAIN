@@ -22,11 +22,12 @@ from __future__ import print_function
 
 import argparse
 import numpy as np
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
 
 from data_loader import data_loader
 from gain import gain
-from utils import rmse_loss
-
+from utils import rmse_loss, pfc
 
 def main (args):
   '''Main function for UCI letter and spam datasets.
@@ -60,12 +61,16 @@ def main (args):
   
   # Report the RMSE performance
   rmse_numerical = rmse_loss(ori_data_x, imputed_data_x, data_m, data_name)
+
+  # Report the PFC performance 
+  pfc_categorical = pfc(ori_data_x, imputed_data_x, data_m, data_name)
   
   print()
   print('Dataset: ' + str(data_name))
-  print('RMSE Numerical Performance: ' + str(np.round(rmse_numerical, 4)))
+  print('RMSE - Numerical Performance: ' + str(np.round(rmse_numerical, 4)))
+  print('PFC - Categorical Performance: ' + str(np.round(pfc_categorical, 4)) + '%')
   
-  return imputed_data_x, rmse_numerical
+  return imputed_data_x, rmse_numerical, pfc_categorical
 
 if __name__ == '__main__':  
   
@@ -74,7 +79,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--data_name',
       choices=['letter','news', 'adult', 'mushroom', 'credit', 'basic_test_coded'],
-      default='letter',
+      default='mushroom',
       type=str)
   parser.add_argument(
       '--miss_rate',
@@ -84,7 +89,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--batch_size',
       help='the number of samples in mini-batch',
-      default=2,
+      default=128,
       type=int)
   parser.add_argument(
       '--hint_rate',
@@ -99,10 +104,23 @@ if __name__ == '__main__':
   parser.add_argument(
       '--iterations',
       help='number of training interations',
-      default=1000,
+      default=10000,
       type=int)
   
   args = parser.parse_args() 
   
   # Calls main function  
-  imputed_data, rmse = main(args)
+  imputed_data, rmse_numerical, pfc_categorical = main(args)
+encoder = OneHotEncoder()
+
+# Fit the encoder to the data
+encoder.fit(imputed_data)
+
+# Revert the transformation using the inverse_transform method
+decoded_categorical = encoder.inverse_transform(imputed_data)
+
+# Combine the decoded categorical columns and the numerical columns
+#processed_data = np.hstack((decoded_categorical, imputed_data))
+
+# Print the processed data
+print(decoded_categorical)
