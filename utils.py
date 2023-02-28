@@ -30,9 +30,8 @@ from datasets import datasets
 import numpy as np
 #import tensorflow as tf
 ##IF USING TF 2 use following import to still use TF < 2.0 Functionalities
-import tensorflow._api.v2.compat.v1 as tf
-tf.disable_v2_behavior()
-
+#import tensorflow._api.v2.compat.v1 as tf
+#tf.disable_v2_behavior()
 
 def normalization (data, parameters=None):
   '''Normalize data in [0, 1] range.
@@ -140,21 +139,24 @@ def rmse_num_loss(ori_data, imputed_data, data_m, data_name):
 
   # Find number of numerical columns
   N_num_cols = len(datasets[data_name]["num_cols"])
-  
-  # Extract only the numerical columns
-  ori_data_num = ori_data[:, :N_num_cols]
-  imputed_data_num = imputed_data[:, :N_num_cols]
-  data_m_num = data_m[:, :N_num_cols]
-  
-  # RMSE numerical 
-  ori_data_num, norm_parameters = normalization(ori_data_num)
-  imputed_data_num, _ = normalization(imputed_data_num, norm_parameters)  
-  nominator = np.sum(((1-data_m_num) * ori_data_num - (1-data_m_num) * imputed_data_num)**2)
-  denominator = np.sum(1-data_m_num)
-  
-  rmse_num = np.sqrt(nominator/float(denominator))
-  
-  return rmse_num
+
+  if N_num_cols == 0:
+    return None
+  else: 
+    # Extract only the numerical columns
+    ori_data_num = ori_data[:, :N_num_cols]
+    imputed_data_num = imputed_data[:, :N_num_cols]
+    data_m_num = data_m[:, :N_num_cols]
+    
+    # RMSE numerical 
+    ori_data_num, norm_parameters = normalization(ori_data_num)
+    imputed_data_num, _ = normalization(imputed_data_num, norm_parameters)  
+    nominator = np.sum(((1-data_m_num) * ori_data_num - (1-data_m_num) * imputed_data_num)**2)
+    denominator = np.sum(1-data_m_num)
+    
+    rmse_num = np.sqrt(nominator/float(denominator))
+    
+    return rmse_num
 
 ######## NEW METHOD ######################
 def rmse_cat_loss(ori_data, imputed_data, data_m, data_name):
@@ -171,21 +173,25 @@ def rmse_cat_loss(ori_data, imputed_data, data_m, data_name):
 
   # Find number of columns
   N_num_cols = len(datasets[data_name]["num_cols"])   # Find number of numerical columns
+  N_cat_cols = len(datasets[data_name]["cat_cols"])   # Find number of categorical columns
   
-  # Extract only the categorical columns
-  ori_data_cat = ori_data[:, N_num_cols:]
-  imputed_data_cat = imputed_data[:, N_num_cols:]
-  data_m_cat = data_m[:, N_num_cols:]
-  
-  # RMSE categorical
-  ori_data_cat, norm_parameters = normalization(ori_data_cat)
-  imputed_data_cat, _ = normalization(imputed_data_cat, norm_parameters)  
-  nominator = np.sum(((1-data_m_cat) * ori_data_cat - (1-data_m_cat) * imputed_data_cat)**2)
-  denominator = np.sum(1-data_m_cat)
-  
-  rmse_cat = np.sqrt(nominator/float(denominator))
-  
-  return rmse_cat
+  if N_cat_cols == 0:
+    return None
+  else:
+    # Extract only the categorical columns
+    ori_data_cat = ori_data[:, N_num_cols:]
+    imputed_data_cat = imputed_data[:, N_num_cols:]
+    data_m_cat = data_m[:, N_num_cols:]
+    
+    # RMSE categorical
+    ori_data_cat, norm_parameters = normalization(ori_data_cat)
+    imputed_data_cat, _ = normalization(imputed_data_cat, norm_parameters)  
+    nominator = np.sum(((1-data_m_cat) * ori_data_cat - (1-data_m_cat) * imputed_data_cat)**2)
+    denominator = np.sum(1-data_m_cat)
+    
+    rmse_cat = np.sqrt(nominator/float(denominator))
+    
+    return rmse_cat
 
 ######## NEW METHOD ######################
 def pfc(ori_data, imputed_data, data_m, data_name): # No taking into consideration category belonging now, to be fixed
@@ -200,22 +206,27 @@ def pfc(ori_data, imputed_data, data_m, data_name): # No taking into considerati
     - pfc: Proportion Falsely Classified
   '''
   # Find number of columns
+  # Find number of columns
   N_num_cols = len(datasets[data_name]["num_cols"])   # Find number of numerical columns
+  N_cat_cols = len(datasets[data_name]["cat_cols"])   # Find number of categorical columns
   
-  # Extract only the categorical columns
-  ori_data_cat = ori_data[:, N_num_cols:]
-  imputed_data_cat = imputed_data[:, N_num_cols:]
-  data_m_cat = data_m[:, N_num_cols:]
+  if N_cat_cols == 0:
+    return None
+  else: 
+    # Extract only the categorical columns
+    ori_data_cat = ori_data[:, N_num_cols:]
+    imputed_data_cat = imputed_data[:, N_num_cols:]
+    data_m_cat = data_m[:, N_num_cols:]
 
-  data_m_bool = ~data_m_cat.astype(bool) # True indicates missing value (=0), False indicates non-missing value (=1)
+    data_m_bool = ~data_m_cat.astype(bool) # True indicates missing value (=0), False indicates non-missing value (=1)
 
-  N_missing = np.count_nonzero(data_m_cat == 0) # 0 = missing value
-  N_correct = np.sum(ori_data_cat[data_m_bool] == imputed_data_cat[data_m_bool])
+    N_missing = np.count_nonzero(data_m_cat == 0) # 0 = missing value
+    N_correct = np.sum(ori_data_cat[data_m_bool] == imputed_data_cat[data_m_bool])
 
-  # Calculate PFC
-  pfc = (1 - (N_correct/N_missing))*100
-  
-  return pfc
+    # Calculate PFC
+    pfc = (1 - (N_correct/N_missing))*100
+    
+    return pfc
 
 def xavier_init(size):
   '''Xavier initialization.
@@ -227,8 +238,8 @@ def xavier_init(size):
     - initialized random vector.
   '''
   in_dim = size[0]
-  xavier_stddev = 1. / tf.sqrt(in_dim / 2.)
-  return tf.random_normal(shape = size, stddev = xavier_stddev)
+  xavier_stddev = 1. / np.sqrt(in_dim / 2.)
+  return np.random.normal(size = size, scale = xavier_stddev)
       
 
 def binary_sampler(p, rows, cols):
@@ -279,7 +290,6 @@ def sample_batch_index(total, batch_size):
 
   
 ############## ORIGINAL RMSE CODE ##############################
-
 '''def rmse_loss (ori_data, imputed_data, data_m):
   Compute RMSE loss between ori_data and imputed_data
   

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''Main function for UCI letter and spam datasets. //HA
+'''Main function for UCI letter and spam datasets. 
 '''
 
 # Necessary packages
@@ -54,19 +54,20 @@ def main (args):
                      'iterations': args.iterations}
   
   # Load data and introduce missingness
-  ori_data_x, miss_data_x, data_m = data_loader(data_name, miss_rate)
+  train_ori_data_x, train_miss_data_x, train_data_m, \
+  test_ori_data_x, test_miss_data_x, test_data_m = data_loader(data_name, miss_rate)
   
-  # Impute missing data
-  imputed_data_x = gain(miss_data_x, gain_parameters)
+  # Impute missing data for test data
+  test_imputed_data_x = gain(train_miss_data_x, test_miss_data_x, gain_parameters)
   
-  # Report the numerical RMSE performance
-  rmse_num = rmse_num_loss(ori_data_x, imputed_data_x, data_m, data_name)
+  # Report the numerical RMSE performance for test data
+  rmse_num = rmse_num_loss(test_ori_data_x, test_imputed_data_x, test_data_m, data_name)
 
-    # Report the numerical RMSE performance
-  rmse_cat = rmse_cat_loss(ori_data_x, imputed_data_x, data_m, data_name)
+  # Report the numerical RMSE performance for test data
+  rmse_cat = rmse_cat_loss(test_ori_data_x, test_imputed_data_x, test_data_m, data_name)
 
-  # Report the PFC performance 
-  pfc_categorical = pfc(ori_data_x, imputed_data_x, data_m, data_name)
+  # Report the PFC performance for test data
+  pfc_categorical = pfc(test_ori_data_x, test_imputed_data_x, test_data_m, data_name)
   
   print()
   print('Dataset: ' + str(data_name))
@@ -74,7 +75,7 @@ def main (args):
   print('RMSE - Categorical Performance: ' + str(np.round(rmse_cat, 4)))
   print('PFC - Categorical Performance: ' + str(np.round(pfc_categorical, 4)) + '%')
   
-  return imputed_data_x, rmse_num, rmse_cat, pfc_categorical
+  return test_imputed_data_x, rmse_num, rmse_cat, pfc_categorical
 
 if __name__ == '__main__':  
   
@@ -82,8 +83,8 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--data_name',
-      choices=['letter','news', 'adult', 'mushroom', 'credit', 'basic_test_coded'],
-      default='adult',
+      choices=['letter','news', 'bank', 'mushroom', 'credit', 'basic_test_coded'],
+      default='news',
       type=str)
   parser.add_argument(
       '--miss_rate',
@@ -108,7 +109,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--iterations',
       help='number of training interations',
-      default=100,
+      default=10000,
       type=int)
   
   args = parser.parse_args() 
