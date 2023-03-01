@@ -1,16 +1,24 @@
 import pandas as pd
 import numpy as np
 from utils import binary_sampler
+from datasets import datasets
 
-# Introducing MCAR in dataset
-
-data_name = "mushroom"
+## Introducing MCAR in dataset
+# Parameters
+data_name = "news"
 miss_rate = 0.7
 missingness = 70
+target_col = datasets[data_name]['target']
 
 # Read datasets
 train_data_full = pd.read_csv('train_data/'+data_name+'_train.csv')
 test_data_full = pd.read_csv('test_data/'+data_name+'_test.csv')
+
+# Extract target column
+target_col_index = train_data_full.columns.get_loc(target_col)
+target_col_train = train_data_full.pop(target_col)
+target_col_test = test_data_full.pop(target_col)
+
 no_train, dim_train = train_data_full.shape
 no_test, dim_test = test_data_full.shape
 
@@ -29,6 +37,10 @@ test_miss_data_x[test_data_m == 0] = np.nan
 
 print(test_miss_data_x.isna().sum().sum())
 print(test_miss_data_x.isna().sum().sum()/(no_test * dim_test))
+
+# Insert target column again
+train_miss_data_x.insert(target_col_index, target_col, target_col_train)
+test_miss_data_x.insert(target_col_index, target_col, target_col_train)
 
 # Save as csv
 filename_train = '{}{}_{}_{}.csv'.format('train_data/', data_name, 'train', missingness)

@@ -187,7 +187,7 @@ datasets: Dict[str, Dict[str, Any]] = {
             "abs_title_subjectivity": "numerical",
             "abs_title_sentiment_polarity": "numerical",  
             },
-        "target": 'shares',
+        "target": "shares",
         "drop_cols": ['url', 'timedelta'],
         "num_cols": ['n_tokens_title','n_tokens_content','n_unique_tokens','n_non_stop_words','n_non_stop_unique_tokens','num_hrefs','num_self_hrefs','num_imgs','num_videos','average_token_length',
                      'num_keywords', 'kw_min_min','kw_max_min','kw_avg_min','kw_min_max','kw_max_max','kw_avg_max','kw_min_avg','kw_max_avg','kw_avg_avg','self_reference_min_shares','self_reference_max_shares',
