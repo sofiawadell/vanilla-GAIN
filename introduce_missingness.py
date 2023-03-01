@@ -4,7 +4,7 @@ from utils import binary_sampler
 
 # Introducing MCAR in dataset
 
-data_name = "news"
+data_name = "mushroom"
 miss_rate = 0.7
 missingness = 70
 
