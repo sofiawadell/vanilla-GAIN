@@ -30,7 +30,7 @@ from gain import gain
 from utils import rmse_num_loss, rmse_cat_loss, pfc
 
 def main (args):
-  '''Main function for UCI letter and spam datasets.
+  '''Main function for GAIN algorithm.
   
   Args:
     - data_name: letter or spam
