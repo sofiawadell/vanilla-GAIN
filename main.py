@@ -84,12 +84,12 @@ if __name__ == '__main__':
   parser.add_argument(
       '--data_name',
       choices=['letter','news', 'bank', 'mushroom', 'credit', 'basic_test_coded'],
-      default='news',
+      default='bank',
       type=str)
   parser.add_argument(
       '--miss_rate',
-      help='missing data probability',
-      default=0.2,
+      help='missing data percentage',
+      default=10,
       type=float)
   parser.add_argument(
       '--batch_size',
@@ -109,7 +109,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--iterations',
       help='number of training interations',
-      default=10000,
+      default=1000,
       type=int)
   
   args = parser.parse_args() 

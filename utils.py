@@ -257,7 +257,6 @@ def binary_sampler(p, rows, cols):
   binary_random_matrix = 1*(unif_random_matrix < p)
   return binary_random_matrix
 
-
 def uniform_sampler(low, high, rows, cols):
   '''Sample uniform random variables.
   
