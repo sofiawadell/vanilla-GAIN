@@ -62,7 +62,7 @@ for col in cat_cols:
 
     # Add new columns to missing dataset for any missing categories
     for category in missing_categories:
-        prefix = col
+        prefix = col + '_'
         new_col = pd.Series([0] * len(full_data_x))
         new_col.name = prefix + str(category)
         #full_data_x = pd.concat([full_data_x, new_col], axis=1)
