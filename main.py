@@ -53,7 +53,7 @@ def main (args):
                      'alpha': args.alpha,
                      'iterations': args.iterations}
   
-  # Load data and introduce missingness
+  # Load training data and test data
   train_ori_data_x, train_miss_data_x, train_data_m, \
   test_ori_data_x, test_miss_data_x, test_data_m = data_loader(data_name, miss_rate)
   

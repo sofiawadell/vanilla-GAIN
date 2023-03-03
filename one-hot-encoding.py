@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from datasets import datasets
 
 ''' Description
@@ -9,7 +10,8 @@ dataset.
 
 '''
 # Determine dataset, missingness and mode (test/train)
-all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
+#all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
+all_datasets = ["credit"]
 all_missingness = [10, 30, 50, 70]
 modes = ["train", "test"]
 
@@ -32,27 +34,32 @@ for missingness in all_missingness:
                 # Create copy of dataframes
                 df_missing_encoded = missing_data.copy()
                 df_complete_encoded = complete_data.copy()
-                    
+                
                 # Loop through each categorical column and apply one-hot encoding
                 for col in cat_cols:
                     # Get unique categories across both datasets
-                    filename_complete = 'original_data_num_first/'+dataset+'.csv'
-                    complete_data_full = pd.read_csv(filename_complete)
-                    categories = pd.concat([complete_data[col], complete_data_full[col]]).unique()
-                    categories.sort()
+                    filename = 'original_data_num_first/'+dataset+'.csv'
+                    complete_data_full = pd.read_csv(filename)
+                    categories = (complete_data_full[col]).unique()
+                    if np.issubdtype(categories.dtype, np.number):
+                        categories.sort()
 
                     # Perform one-hot encoding on the column, specifying the column order and feature name prefix
                     prefix = col + '_'
                     encoded_col_missing = pd.get_dummies(missing_data[col], prefix=prefix, columns=categories)
-                    encoded_col_missing = encoded_col_missing.reindex(columns=[prefix+str(c) for c in categories], fill_value=0)
                     encoded_col_complete = pd.get_dummies(complete_data[col], prefix=prefix, columns=categories)
-                    encoded_col_complete = encoded_col_complete.reindex(columns=[prefix+str(c) for c in categories], fill_value=0)
 
-                    # Replace any rows with missing values with NaN
-                    encoded_col_missing[missing_data[col].isna()] = pd.NA
-                    
-                    # Add the encoded column(s) to the new dataframe
-                    df_missing_encoded = pd.concat([df_missing_encoded, encoded_col_missing], axis=1)
+                    # Replace all options for a column with NaN if any value in that column is missing
+                    missing_values = missing_data[col].isna()
+                    if missing_values.any():
+                        encoded_col_missing.loc[missing_values, encoded_col_missing.columns.str.startswith(prefix)] = pd.NA
+
+                    # Create a DataFrame with the desired columns and values for missing data
+                    missing_values_df = pd.DataFrame(columns=[prefix+str(c) for c in categories], data=np.zeros((missing_data.shape[0], len(categories))))
+                    missing_values_df.loc[missing_mask, :] = pd.NA
+
+                    # Add the encoded column(s) and missing value columns to the new dataframe
+                    df_missing_encoded = pd.concat([df_missing_encoded, encoded_col_missing, missing_values_df], axis=1)
                     df_complete_encoded = pd.concat([df_complete_encoded, encoded_col_complete], axis=1)
 
                 # Remove the original categorical columns from the new dataframe

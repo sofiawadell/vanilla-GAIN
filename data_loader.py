@@ -45,7 +45,7 @@ def data_loader (data_name, miss_rate):
   ## Load training data with missingness
   if data_name in datasets.keys():
     file_name = 'one_hot_train_data/one_hot_'+data_name+'_train_{miss_rate}.csv'.format(miss_rate=str(miss_rate))
-    train_miss_data_x = np.loadtxt(file_name, delimiter=",", skiprows=1) ## FIX THIS, CAN NOT LOAD NAN RIGHT NOW
+    train_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, skip_header=1) 
   else:
     ValueError("Dataset not found")
 
@@ -57,7 +57,7 @@ def data_loader (data_name, miss_rate):
     ValueError("Dataset not found")
   
   ## Find mask
-  missing_values = train_miss_data_x.isnull()
+  missing_values = np.isnan(train_miss_data_x)
   existing_values = ~missing_values
   train_data_m = existing_values.astype(int)
 
@@ -65,7 +65,7 @@ def data_loader (data_name, miss_rate):
   ## Load test data with missingness
   if data_name in datasets.keys():
     file_name = 'one_hot_test_data/one_hot_'+data_name+'_test_{miss_rate}.csv'.format(miss_rate=str(miss_rate))
-    test_miss_data_x = np.loadtxt(file_name, delimiter=",", skiprows=1)
+    test_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, skip_header=1) 
   else:
     ValueError("Dataset not found")
 
@@ -77,7 +77,7 @@ def data_loader (data_name, miss_rate):
     ValueError("Dataset not found")
   
   ## Find mask
-  missing_values = test_miss_data_x.isnull()
+  missing_values = np.isnan(test_miss_data_x)
   existing_values = ~missing_values
   test_data_m = existing_values.astype(int)
       

@@ -13,14 +13,14 @@ test_data.to_csv('preprocessed_data/letter_test.csv', index=False)
  """
 
 # news ok, inte credit, inte mushroom
-dataset = 'mushroom'
+dataset = 'credit'
 
 cat_cols = datasets[dataset]["cat_cols"]
 num_cols = datasets[dataset]["num_cols"]
 target_col = datasets[dataset]["target"]
 
-df_test = pd.read_csv('one_hot_test_data/one_hot_'+dataset+'_test_50.csv')
-df_train = pd.read_csv('one_hot_train_data/one_hot_'+dataset+'_train_50.csv')
+df_test = pd.read_csv('one_hot_test_data/one_hot_'+dataset+'_test_70.csv')
+df_train = pd.read_csv('one_hot_train_data/one_hot_'+dataset+'_train_70.csv')
 
 print(df_test.shape)
 print(df_train.shape)
