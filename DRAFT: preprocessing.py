@@ -12,17 +12,28 @@ train_data.to_csv('preprocessed_data/letter_train.csv', index=False)
 test_data.to_csv('preprocessed_data/letter_test.csv', index=False)
  """
 
+# news ok, inte credit, inte mushroom
 dataset = 'mushroom'
 
 cat_cols = datasets[dataset]["cat_cols"]
 num_cols = datasets[dataset]["num_cols"]
 target_col = datasets[dataset]["target"]
 
-df = pd.read_csv('original_data/'+dataset+'.csv')
+df_test = pd.read_csv('one_hot_test_data/one_hot_'+dataset+'_test_50.csv')
+df_train = pd.read_csv('one_hot_train_data/one_hot_'+dataset+'_train_50.csv')
 
-df = df.loc[:, num_cols + df.columns.difference(num_cols).tolist()]
+print(df_test.shape)
+print(df_train.shape)
 
-df.to_csv('original_data_num_first/'+dataset+'.csv', index=False)
+df_test_complete = pd.read_csv('one_hot_test_data/one_hot_'+dataset+'_test.csv')
+df_train_complete = pd.read_csv('one_hot_train_data/one_hot_'+dataset+'_train.csv')
+
+print(df_test_complete.shape)
+print(df_train_complete.shape)
+
+
+
+#df.to_csv('original_data_num_first/'+dataset+'.csv', index=False)
 
 """ 
 # Fill missing values with "unknown"
