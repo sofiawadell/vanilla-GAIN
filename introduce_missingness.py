@@ -5,9 +5,9 @@ from datasets import datasets
 
 ## Introducing MCAR in dataset
 # Parameters
-data_name = "news"
-miss_rate = 0.7
-missingness = 70
+data_name = "bank"
+miss_rate = 0.1
+missingness = 10
 target_col = datasets[data_name]['target']
 
 # Read datasets

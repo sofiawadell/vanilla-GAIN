@@ -9,9 +9,9 @@ dataset.
 
 '''
 # Determine dataset, missingness and mode (test/train)
-dataset = "mushroom"
-missingness = 10
-mode = "test"
+dataset = "credit"
+missingness = 30
+mode = "train"
 
 cat_cols = datasets[dataset]["cat_cols"]
 target_col = datasets[dataset]["target"]
@@ -53,13 +53,6 @@ save_filename_missing = '{}{}_{}{}_{}_{}.csv'.format('one_hot_', mode, 'data/one
 df_missing_encoded.to_csv(save_filename_missing, index=False)
 save_filename_complete = '{}{}_{}{}_{}.csv'.format('one_hot_', mode, 'data/one_hot_', dataset, mode)
 df_complete_encoded.to_csv(save_filename_complete, index=False)
-
-
-
-
-
-
-
 
 
 

@@ -3,8 +3,8 @@ from sklearn.model_selection import train_test_split
 
 
 
-data_name = "news"
-df = pd.read_csv('original_data/'+data_name+'.csv')
+data_name = "letter"
+df = pd.read_csv('original_data_num_first/'+data_name+'.csv')
 
 #df = df.drop(columns=['ID'])
 

@@ -12,21 +12,29 @@ train_data.to_csv('preprocessed_data/letter_train.csv', index=False)
 test_data.to_csv('preprocessed_data/letter_test.csv', index=False)
  """
 
-dataset = 'bank'
+dataset = 'mushroom'
 
 cat_cols = datasets[dataset]["cat_cols"]
 num_cols = datasets[dataset]["num_cols"]
 target_col = datasets[dataset]["target"]
 
+df = pd.read_csv('original_data/'+dataset+'.csv')
+
+df = df.loc[:, num_cols + df.columns.difference(num_cols).tolist()]
+
+df.to_csv('original_data_num_first/'+dataset+'.csv', index=False)
+
+""" 
 # Fill missing values with "unknown"
-df[cat_cols] = df[cat_cols].fillna('unknown')
+#df[cat_cols] = df[cat_cols].fillna('unknown')
 
 # Drop target column
-df = df.drop(target_col, axis=1)
+#df = df.drop(target_col, axis=1)
 
 # Drop drop column
 #df = df.drop(drop_cols, axis=1)
-""" 
+
+
 # One-hot encode the categorical columns
 encoder = OneHotEncoder(drop='if_binary', sparse=False)
 cat_encoded = encoder.fit_transform(df[cat_cols])
@@ -34,4 +42,4 @@ cat_encoded = encoder.fit_transform(df[cat_cols])
 # Concatenate the one-hot encoded categorical columns with the numerical columns
 df = pd.concat([df[num_cols], pd.DataFrame(cat_encoded, columns=encoder.get_feature_names_out(cat_cols))], axis=1)
 
-df.to_csv('preprocessed_data/bank.csv', index=False) """
+df.to_csv('original_data_num_first/bank.csv', index=False) """
