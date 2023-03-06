@@ -10,116 +10,94 @@ dataset.
 
 '''
 # Determine dataset, missingness and mode (test/train)
-#all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
-all_datasets = ["credit"]
+all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
+#all_datasets = ["credit"]
 all_missingness = [10, 30, 50, 70]
-modes = ["train", "test"]
 
-for missingness in all_missingness:
-        for dataset in all_datasets:
-            for mode in modes:
-                cat_cols = datasets[dataset]["cat_cols"]
-                target_col = datasets[dataset]["target"]
+#dataset = "credit"
+#missingness = 70
 
-                filename_incomplete = '{}_{}{}_{}_{}.csv'.format(mode, 'data/', dataset, mode, missingness)
-                missing_data = pd.read_csv(filename_incomplete)
+for dataset in all_datasets:
+    for missingness in all_missingness:
+        # Find categorical and target column
+        cat_cols = datasets[dataset]["cat_cols"]
+        target_col = datasets[dataset]["target"]
 
-                filename_complete = '{}_{}{}_{}.csv'.format(mode, 'data/', dataset, mode)
-                complete_data = pd.read_csv(filename_complete)
+        # Concatenate complete datasets
+        filename_train_complete = 'train_data/{}_train.csv'.format(dataset)
+        train_data_complete = pd.read_csv(filename_train_complete)
+        train_data_complete = train_data_complete.drop(target_col, axis=1)
 
-                # Drop target column
-                complete_data = complete_data.drop(target_col, axis=1)
-                missing_data = missing_data.drop(target_col, axis=1)
+        filename_test_complete = 'test_data/{}_test.csv'.format(dataset)
+        test_data_complete = pd.read_csv(filename_test_complete)
+        test_data_complete = test_data_complete.drop(target_col, axis=1)
 
-                # Create copy of dataframes
-                df_missing_encoded = missing_data.copy()
-                df_complete_encoded = complete_data.copy()
-                
-                # Loop through each categorical column and apply one-hot encoding
-                for col in cat_cols:
-                    # Get unique categories across both datasets
-                    filename = 'original_data_num_first/'+dataset+'.csv'
-                    complete_data_full = pd.read_csv(filename)
-                    categories = (complete_data_full[col]).unique()
-                    if np.issubdtype(categories.dtype, np.number):
-                        categories.sort()
+        full_data_complete = pd.concat([train_data_complete, test_data_complete], axis=0)
 
-                    # Perform one-hot encoding on the column, specifying the column order and feature name prefix
-                    prefix = col + '_'
-                    encoded_col_missing = pd.get_dummies(missing_data[col], prefix=prefix, columns=categories)
-                    encoded_col_complete = pd.get_dummies(complete_data[col], prefix=prefix, columns=categories)
+        # Concatenate datasets with missingness
+        filename_train_x = 'train_data/{}_train_{}.csv'.format(dataset, missingness)
+        train_data_x = pd.read_csv(filename_train_x)
+        train_data_x = train_data_x.drop(target_col, axis=1)
 
-                    # Replace all options for a column with NaN if any value in that column is missing
-                    missing_values = missing_data[col].isna()
-                    if missing_values.any():
-                        encoded_col_missing.loc[missing_values, encoded_col_missing.columns.str.startswith(prefix)] = pd.NA
+        filename_test_x = 'test_data/{}_test_{}.csv'.format(dataset, missingness)
+        test_data_x = pd.read_csv(filename_test_x)
+        test_data_x = test_data_x.drop(target_col, axis=1)
 
-                    # Create a DataFrame with the desired columns and values for missing data
-                    missing_values_df = pd.DataFrame(columns=[prefix+str(c) for c in categories], data=np.zeros((missing_data.shape[0], len(categories))))
-                    missing_values_df.loc[missing_mask, :] = pd.NA
+        full_data_x = pd.concat([train_data_x, test_data_x], axis=0)
 
-                    # Add the encoded column(s) and missing value columns to the new dataframe
-                    df_missing_encoded = pd.concat([df_missing_encoded, encoded_col_missing, missing_values_df], axis=1)
-                    df_complete_encoded = pd.concat([df_complete_encoded, encoded_col_complete], axis=1)
+        # Create copy of dataframes
+        df_full_data_complete = full_data_complete.copy()
+        df_full_data_x = full_data_x.copy()
 
-                # Remove the original categorical columns from the new dataframe
-                df_missing_encoded.drop(cat_cols, axis=1, inplace=True)
-                df_complete_encoded.drop(cat_cols, axis=1, inplace=True)
+        # Loop through each categorical column and apply one-hot encoding
+        for col in cat_cols:
+            # Get unique categories across both datasets
+            categories = full_data_complete[col].unique()
 
-                # Save to CSV
-                save_filename_missing = '{}{}_{}{}_{}_{}.csv'.format('one_hot_', mode, 'data/one_hot_', dataset, mode, missingness)
-                df_missing_encoded.to_csv(save_filename_missing, index=False)
-                save_filename_complete = '{}{}_{}{}_{}.csv'.format('one_hot_', mode, 'data/one_hot_', dataset, mode)
-                df_complete_encoded.to_csv(save_filename_complete, index=False)
+            # Check if each category is present in the missing dataset
+            missing_categories = set(categories) - set(full_data_x[col].unique())
 
+            # Perform one-hot encoding on the column, specifying the column order and feature name prefix
+            prefix = col
+            encoded_col_missing = pd.get_dummies(full_data_x[col], prefix=prefix, columns=categories)
+            encoded_col_complete = pd.get_dummies(full_data_complete[col], prefix=prefix, columns=categories)
 
+            # Add new columns to missing dataset for any missing categories
+            for category in missing_categories:
+                prefix = col + '_'
+                new_col = pd.Series([0] * len(full_data_x))
+                new_col.name = prefix + str(category)
+                #full_data_x = pd.concat([full_data_x, new_col], axis=1)
+                encoded_col_missing[new_col.name] = new_col
 
-'''# One-hot encode the categorical columns in the incomplete dataset
-encoded_dataset = pd.get_dummies(incomplete_dataset, columns=cat_cols)
+            # Replace any rows with missing values with NaN
+            encoded_col_missing[full_data_x[col].isna()] = pd.NA
+                            
+            # Add the encoded column(s) to the new dataframe
+            df_full_data_complete = pd.concat([df_full_data_complete, encoded_col_complete], axis=1)
+            df_full_data_x  = pd.concat([df_full_data_x, encoded_col_missing], axis=1)
 
-# Reindex the encoded dataset with all categories from the complete dataset
-encoded_dataset = encoded_dataset.reindex(columns=complete_dataset.columns, fill_value=0)
+        # Remove the original categorical columns from the new dataframe
+        df_full_data_x.drop(cat_cols, axis=1, inplace=True)
+        df_full_data_complete.drop(cat_cols, axis=1, inplace=True)
 
-# Replace rows with missing values with NaN
-encoded_dataset[incomplete_dataset.isnull().any(axis=1)] = pd.NA
+        # Split back into training and test
+        train_data_complete, test_data_complete = np.vsplit(df_full_data_complete, [len(train_data_complete)])
+        train_data_x, test_data_x = np.vsplit(df_full_data_x, [len(train_data_x)])
 
-print(encoded_dataset.head())
+        # Save to CSV
+        filename_train_complete = 'one_hot_train_data/one_hot_{}_train.csv'.format(dataset)
+        train_data_complete.to_csv(filename_train_complete, index=False)
+        filename_test_complete = 'one_hot_test_data/one_hot_{}_test.csv'.format(dataset)
+        test_data_complete.to_csv(filename_test_complete, index=False)
 
+        filename_train_x = 'one_hot_train_data/one_hot_{}_train_{}.csv'.format(dataset, missingness)
+        train_data_x.to_csv(filename_train_x, index=False)
+        filename_test_x = 'one_hot_test_data/one_hot_{}_test_{}.csv'.format(dataset, missingness)
+        test_data_x.to_csv(filename_test_x, index=False)
 
-###############################
+        print(test_data_x.shape)
+        print(train_data_x.shape)
 
-# Create copy of dataframe  
-df_encoded = df.copy()
-
-# Loop through each categorical column and apply one-hot encoding
-for col in cat_cols:
-    # Perform one-hot encoding on the column
-    encoded_col = pd.get_dummies(df[col], prefix=col)
-    
-    # Replace any rows with missing values with NaN
-    encoded_col[df[col].isna()] = pd.NA
-    
-    # Add the encoded column(s) to the new dataframe
-    df_encoded = pd.concat([df_encoded, encoded_col], axis=1)
-    
-# Remove the original categorical columns from the new dataframe
-df_encoded.drop(cat_cols, axis=1, inplace=True)
-
-print(df_encoded.head())
-
-# Make sure still same missingness
-no_missing_inital = df.isnull().sum().sum()
-no, dim = df.shape
-total_size = no * dim
-
-print(no_missing_inital)
-print(total_size)
-print (no_missing_inital/total_size)
-
-# df_encoded.to_csv('OLD_preprocessed_data/'+dataset+'.csv', index=False)
-
-
-#['job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month',
-                     #'day_of_week', 'poutcome'], 
-
-#alternatives = df['month'].unique()'''
+        print(test_data_complete.shape)
+        print(train_data_complete.shape)
