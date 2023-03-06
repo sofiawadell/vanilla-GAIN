@@ -19,6 +19,7 @@ from datasets import datasets
 
 # Necessary packages
 import numpy as np
+import pandas as pd
 from utils import binary_sampler
 
 
@@ -45,14 +46,16 @@ def data_loader (data_name, miss_rate):
   ## Load training data with missingness
   if data_name in datasets.keys():
     file_name = 'one_hot_train_data/one_hot_'+data_name+'_train_{miss_rate}.csv'.format(miss_rate=str(miss_rate))
-    train_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, skip_header=1) 
+    train_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, usecols=range(0, -1), skip_header=1) 
+    train_miss_data_x = train_miss_data_x[:, :-1]
   else:
     ValueError("Dataset not found")
 
   ## Load complete training 
   if data_name in datasets.keys():
     file_name = 'one_hot_train_data/one_hot_'+data_name+'_train.csv'
-    train_data_x = np.loadtxt(file_name, delimiter=",", skiprows=1)
+    train_data_x = np.genfromtxt(file_name, delimiter=",", usecols=range(0, -1), skip_header=1)
+    train_data_x = train_data_x[:, :-1]
   else:
     ValueError("Dataset not found")
   
@@ -65,14 +68,16 @@ def data_loader (data_name, miss_rate):
   ## Load test data with missingness
   if data_name in datasets.keys():
     file_name = 'one_hot_test_data/one_hot_'+data_name+'_test_{miss_rate}.csv'.format(miss_rate=str(miss_rate))
-    test_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, skip_header=1) 
+    test_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, usecols=range(0, -1), skip_header=1) 
+    test_miss_data_x = test_miss_data_x[:, :-1]
   else:
     ValueError("Dataset not found")
 
   ## Load complete training 
   if data_name in datasets.keys():
     file_name = 'one_hot_test_data/one_hot_'+data_name+'_test.csv'
-    test_data_x = np.loadtxt(file_name, delimiter=",", skiprows=1)
+    test_data_x = np.genfromtxt(file_name, delimiter=",", usecols=range(0, -1), skip_header=1)
+    test_data_x = test_data_x[:, :-1]
   else:
     ValueError("Dataset not found")
   

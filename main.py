@@ -55,7 +55,7 @@ def main (args):
   
   # Load training data and test data
   train_ori_data_x, train_miss_data_x, train_data_m, \
-  test_ori_data_x, test_miss_data_x, test_data_m = data_loader(data_name, miss_rate)
+  test_ori_data_x, test_miss_data_x, test_data_m = data_loader(data_name, miss_rate)  
   
   # Impute missing data for test data
   test_imputed_data_x = gain(train_miss_data_x, test_miss_data_x, gain_parameters)
@@ -63,7 +63,7 @@ def main (args):
   # Report the numerical RMSE performance for test data
   rmse_num = rmse_num_loss(test_ori_data_x, test_imputed_data_x, test_data_m, data_name)
 
-  # Report the numerical RMSE performance for test data
+  # Report the categorical RMSE performance for test data
   rmse_cat = rmse_cat_loss(test_ori_data_x, test_imputed_data_x, test_data_m, data_name)
 
   # Report the PFC performance for test data
