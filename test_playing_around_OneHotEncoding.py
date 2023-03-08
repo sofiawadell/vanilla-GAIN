@@ -6,11 +6,14 @@ from datasets import datasets
 from utils import binary_sampler
 
 dataset = "bank"
-df = pd.read_csv('one_hot_train_data/one_hot_'+dataset+'_train_70.csv')
+df = pd.read_csv('one_hot_test_data/one_hot_'+dataset+'_test_10.csv')
 
-df = df.to_numpy()
+missing_values_count = df.isna().sum().sum()
+non_missing_values_count = df.count().sum().sum()
 
-print(df)
+print(missing_values_count)
+print(non_missing_values_count)
+print((missing_values_count/non_missing_values_count)*100)
 
 #print(df.get("campaign").dtype)
 

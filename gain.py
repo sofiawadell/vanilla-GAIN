@@ -59,9 +59,6 @@ def gain (train_data_x, test_data_x, gain_parameters):
   hint_rate = gain_parameters['hint_rate']
   alpha = gain_parameters['alpha']
   iterations = gain_parameters['iterations']
-  
-  # Concatinate datasets to normalize (train_data_x will end up above test_data_x)
-  data_x = np.vstack([train_data_x, test_data_x])
 
   # Other parameters for training data
   no, dim = train_data_x.shape
@@ -69,14 +66,14 @@ def gain (train_data_x, test_data_x, gain_parameters):
   
   # Hidden state dimensions
   h_dim = int(dim)
-  
-  # Normalization for all columns
-  norm_data, norm_parameters = normalization(data_x)
-  norm_data_x = np.nan_to_num(norm_data, 0)
 
-  # Train/Test split
-  train_norm_data_x, test_norm_data_x = np.vsplit(norm_data_x, [len(train_data_x)])
-  
+  # Normalization for all columns and test/training
+  train_norm_data_x, norm_params_train = normalization(train_data_x)
+  train_norm_data_x = np.nan_to_num(train_norm_data_x, 0)
+
+  test_norm_data_x, _ = normalization(test_data_x, norm_params_train)
+  test_norm_data_x = np.nan_to_num(test_norm_data_x, 0)
+
   ## GAIN architecture   
   # Discriminator variables
   D_W1 = torch.tensor(xavier_init([dim*2, h_dim]), requires_grad=True) # Data + Hint as inputs
@@ -224,7 +221,7 @@ def gain (train_data_x, test_data_x, gain_parameters):
   imputed_data_test = imputed_data_test.numpy()
 
   # Renormalization for all columns
-  imputed_data_test = renormalization(imputed_data_test, norm_parameters)  
+  imputed_data_test = renormalization(imputed_data_test, norm_params_train)  
   
   # Rounding
   imputed_data_test = rounding(imputed_data_test, test_data_x)

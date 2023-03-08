@@ -20,7 +20,7 @@ from datasets import datasets
 # Necessary packages
 import numpy as np
 import pandas as pd
-from utils import binary_sampler
+from utils import binary_sampler, normalization
 
 
 def data_loader (data_name, miss_rate):
@@ -85,8 +85,11 @@ def data_loader (data_name, miss_rate):
   missing_values = np.isnan(test_miss_data_x)
   existing_values = ~missing_values
   test_data_m = existing_values.astype(int)
+
+  ## Find normalizing parameters for the full training dataset
+  _, norm_params = normalization(train_data_x)
       
-  return train_data_x, train_miss_data_x, train_data_m, test_data_x, test_miss_data_x, test_data_m
+  return train_data_x, train_miss_data_x, train_data_m, test_data_x, test_miss_data_x, test_data_m, norm_params
 
 
 ############################################

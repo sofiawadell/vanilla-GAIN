@@ -54,20 +54,20 @@ def main (args):
                      'iterations': args.iterations}
   
   # Load training data and test data
-  train_ori_data_x, train_miss_data_x, train_data_m, \
-  test_ori_data_x, test_miss_data_x, test_data_m = data_loader(data_name, miss_rate)  
+  train_ori_data, train_miss_data, train_data_m, \
+  test_ori_data, test_miss_data, test_data_m, norm_params_train = data_loader(data_name, miss_rate) 
   
   # Impute missing data for test data
-  test_imputed_data_x = gain(train_miss_data_x, test_miss_data_x, gain_parameters)
+  test_imputed_data = gain(train_miss_data, test_miss_data, gain_parameters)
   
   # Report the numerical RMSE performance for test data
-  rmse_num = rmse_num_loss(test_ori_data_x, test_imputed_data_x, test_data_m, data_name)
+  rmse_num = rmse_num_loss(test_ori_data, test_imputed_data, test_data_m, data_name, norm_params_train)
 
   # Report the categorical RMSE performance for test data
-  rmse_cat = rmse_cat_loss(test_ori_data_x, test_imputed_data_x, test_data_m, data_name)
+  rmse_cat = rmse_cat_loss(test_ori_data, test_imputed_data, test_data_m, data_name)
 
   # Report the PFC performance for test data
-  pfc_categorical = pfc(test_ori_data_x, test_imputed_data_x, test_data_m, data_name)
+  pfc_categorical = pfc(test_ori_data, test_imputed_data, test_data_m, data_name)
   
   print()
   print('Dataset: ' + str(data_name))
@@ -75,7 +75,7 @@ def main (args):
   print('RMSE - Categorical Performance: ' + str(np.round(rmse_cat, 4)))
   print('PFC - Categorical Performance: ' + str(np.round(pfc_categorical, 4)) + '%')
   
-  return test_imputed_data_x, rmse_num, rmse_cat, pfc_categorical
+  return test_imputed_data, rmse_num, rmse_cat, pfc_categorical
 
 if __name__ == '__main__':  
   
