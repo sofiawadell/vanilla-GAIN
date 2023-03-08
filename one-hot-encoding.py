@@ -10,8 +10,8 @@ dataset.
 
 '''
 # Determine dataset, missingness and mode (test/train)
-all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
-#all_datasets = ["credit"]
+#all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
+all_datasets = ["credit"]
 all_missingness = [10, 30, 50, 70]
 
 #dataset = "credit"

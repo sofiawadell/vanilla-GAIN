@@ -4,13 +4,14 @@ from sklearn.preprocessing import OneHotEncoder
 from datasets import datasets 
 
 
-""" df = pd.read_csv('preprocessed_data/letter.csv')
+df = pd.read_csv('test_data/credit_test_70.csv')
 
-train_data, test_data = train_test_split(df, test_size=0.2, random_state=42)
+df = df.drop(df.columns[15], axis=1)
 
-train_data.to_csv('preprocessed_data/letter_train.csv', index=False)
-test_data.to_csv('preprocessed_data/letter_test.csv', index=False)
- """
+df.to_csv('test_data/credit_test_70.csv', index=False)
+#test_data.to_csv('preprocessed_data/letter_test.csv', index=False)
+
+"""
 
 # news ok, inte credit, inte mushroom
 dataset = 'credit'
@@ -35,7 +36,7 @@ print(df_train_complete.shape)
 
 #df.to_csv('original_data_num_first/'+dataset+'.csv', index=False)
 
-""" 
+ 
 # Fill missing values with "unknown"
 #df[cat_cols] = df[cat_cols].fillna('unknown')
 

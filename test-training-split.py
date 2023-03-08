@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 
 
 
-data_name = "letter"
+data_name = "credit"
 df = pd.read_csv('original_data_num_first/'+data_name+'.csv')
 
 #df = df.drop(columns=['ID'])
