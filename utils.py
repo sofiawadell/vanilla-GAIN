@@ -42,7 +42,7 @@ def normalization (data, parameters=None):
   Returns:
     - norm_data: normalized data
     - norm_parameters: min_val, max_val for each feature for renormalization
-  '''
+  '''  
 
   # Parameters
   _, dim = data.shape
@@ -125,7 +125,7 @@ def rounding (imputed_data, data_x):
       
   return rounded_data
 
-def rmse_num_loss(ori_data, imputed_data, data_m, data_name):
+def rmse_num_loss(ori_data, imputed_data, data_m, data_name, norm_params):
   '''Compute RMSE loss between ori_data and imputed_data for numerical variables
   
   Args:
@@ -143,15 +143,17 @@ def rmse_num_loss(ori_data, imputed_data, data_m, data_name):
   if N_num_cols == 0:
     return None
   else: 
+    # Normalize with norm_params
+    ori_data_norm, _ = normalization(ori_data, norm_params)
+    imputed_data_norm, _ = normalization(imputed_data, norm_params) 
+
     # Extract only the numerical columns
-    ori_data_num = ori_data[:, :N_num_cols]
-    imputed_data_num = imputed_data[:, :N_num_cols]
+    ori_data_norm_num = ori_data_norm[:, :N_num_cols]
+    imputed_data_norm_num = imputed_data_norm[:, :N_num_cols]
     data_m_num = data_m[:, :N_num_cols]
     
-    # RMSE numerical 
-    ori_data_num, norm_parameters = normalization(ori_data_num)
-    imputed_data_num, _ = normalization(imputed_data_num, norm_parameters)  
-    nominator = np.sum(((1-data_m_num) * ori_data_num - (1-data_m_num) * imputed_data_num)**2)
+    # Calculate RMSE numerical   
+    nominator = np.sum(((1-data_m_num) * ori_data_norm_num - (1-data_m_num) * imputed_data_norm_num)**2)
     denominator = np.sum(1-data_m_num)
     
     rmse_num = np.sqrt(nominator/float(denominator))
@@ -241,7 +243,6 @@ def xavier_init(size):
   xavier_stddev = 1. / np.sqrt(in_dim / 2.)
   return np.random.normal(size = size, scale = xavier_stddev)
       
-
 def binary_sampler(p, rows, cols):
   '''Sample binary random variables.
   
