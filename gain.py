@@ -61,7 +61,7 @@ def gain (train_data_x, test_data_x, gain_parameters):
   iterations = gain_parameters['iterations']
   
   # Concatinate datasets to normalize (train_data_x will end up above test_data_x)
-  data_x =  np.vstack([train_data_x, test_data_x])
+  data_x = np.vstack([train_data_x, test_data_x])
 
   # Other parameters for training data
   no, dim = train_data_x.shape
@@ -70,7 +70,7 @@ def gain (train_data_x, test_data_x, gain_parameters):
   # Hidden state dimensions
   h_dim = int(dim)
   
-  # Normalization for numerical
+  # Normalization for all columns
   norm_data, norm_parameters = normalization(data_x)
   norm_data_x = np.nan_to_num(norm_data, 0)
 
@@ -203,31 +203,7 @@ def gain (train_data_x, test_data_x, gain_parameters):
     if it % 100 == 0:
         print('Iter: {}'.format(it),end='\t')
         print('Train_loss: {:.4}'.format(np.sqrt(MSE_train_loss_curr.item())),end='\t')
-        print('Test_loss: {:.4}'.format(np.sqrt(MSE_test_loss_curr.item())))
-  
-  ## Return imputed training data     
-  Z_mb = uniform_sampler(0, 0.01, no, dim) 
-  M_mb = train_data_m
-  X_mb = train_norm_data_x          
-  New_X_mb = M_mb * X_mb + (1-M_mb) * Z_mb 
-
-  X_mb = torch.tensor(X_mb)
-  M_mb = torch.tensor(M_mb)
-  New_X_mb = torch.tensor(New_X_mb)
-      
-  MSE_final, Sample = test_loss(X=X_mb, M=M_mb, New_X=New_X_mb)
-  
-  imputed_data_train = M_mb * X_mb + (1-M_mb) * Sample
-
-  # Convert to Numpy array
-  imputed_data_train = imputed_data_train.detach()
-  imputed_data_train = imputed_data_train.numpy()
-
-  # Renormalization for numerical columns
-  imputed_data_train = renormalization(imputed_data_train, norm_parameters)  
-  
-  # Rounding
-  imputed_data_train = rounding(imputed_data_train, train_data_x)      
+        print('Test_loss: {:.4}'.format(np.sqrt(MSE_test_loss_curr.item())))     
   
   ## Return imputed test data     
   Z_mb = uniform_sampler(0, 0.01, test_no, dim) 
@@ -247,13 +223,13 @@ def gain (train_data_x, test_data_x, gain_parameters):
   imputed_data_test = imputed_data_test.detach()
   imputed_data_test = imputed_data_test.numpy()
 
-  # Renormalization for numerical columns
+  # Renormalization for all columns
   imputed_data_test = renormalization(imputed_data_test, norm_parameters)  
   
   # Rounding
   imputed_data_test = rounding(imputed_data_test, test_data_x)
           
-  return imputed_data_test, imputed_data_train
+  return imputed_data_test
 
 
 ############### ORIGINAL CODE ###################################################

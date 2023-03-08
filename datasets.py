@@ -101,19 +101,6 @@ datasets: Dict[str, Dict[str, Any]] = {
         "num_cols": ['age', 'duration', 'campaign', 'pdays', 'previous', 'emp.var.rate', 'cons.price.idx', 'cons.conf.idx', 'euribor3m', 'nr.employed'], 
         "cat_cols": ['job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month',
                      'day_of_week', 'poutcome'],
-        "cat_cols_alternatives": {
-            'job': ['housemaid','services', 'admin.', 'blue-collar', 'technician', 'retired', 'management', 
-                    'unemployed','self-employed', 'unknown', 'entrepreneur', 'student'], 
-            'marital': ['married', 'single', 'divorced', 'unknown'],
-            'education': ['basic.4y', 'high.school', 'basic.6y', 'basic.9y', 'professional.course','unknown','university.degree','illiterate'],
-            'default':  ['no', 'unknown', 'yes'],
-            'housing': ['no', 'unknown', 'yes'],
-            'loan': ['no', 'unknown', 'yes'],
-            'contact':['telephone' 'cellular'], 
-            'month': [],
-            'day_of_week': [],
-            'poutcome': [],
-            }
         }, 
     "mushroom": {
         "name": "mushroom",
