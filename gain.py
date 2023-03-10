@@ -197,7 +197,7 @@ def gain (train_data_x, test_data_x, gain_parameters):
     G_solver.step() 
 
     # Intermediate Losses
-    if it % 100 == 0:
+    if it % 10000 == 0:
         print('Iter: {}'.format(it),end='\t')
         print('Train_loss: {:.4}'.format(np.sqrt(MSE_train_loss_curr.item())),end='\t')
         print('Test_loss: {:.4}'.format(np.sqrt(MSE_test_loss_curr.item())))     

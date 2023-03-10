@@ -160,7 +160,6 @@ def rmse_num_loss(ori_data, imputed_data, data_m, data_name, norm_params):
     
     return rmse_num
 
-######## NEW METHOD ######################
 def rmse_cat_loss(ori_data, imputed_data, data_m, data_name):
   '''Compute RMSE loss between ori_data and imputed_data for categorical variables
   
@@ -185,17 +184,34 @@ def rmse_cat_loss(ori_data, imputed_data, data_m, data_name):
     imputed_data_cat = imputed_data[:, N_num_cols:]
     data_m_cat = data_m[:, N_num_cols:]
     
-    # RMSE categorical
-    ori_data_cat, norm_parameters = normalization(ori_data_cat)
-    imputed_data_cat, _ = normalization(imputed_data_cat, norm_parameters)  
+    # RMSE categorical  
     nominator = np.sum(((1-data_m_cat) * ori_data_cat - (1-data_m_cat) * imputed_data_cat)**2)
     denominator = np.sum(1-data_m_cat)
     
     rmse_cat = np.sqrt(nominator/float(denominator))
     
     return rmse_cat
+  
+def m_rmse_loss(rmse_num, rmse_cat):
+  '''Compute mRMSE loss between ori_data and imputed_data
+  
+  Args:
+    - ori_data: original data without missing values
+    - imputed_data: imputed data
+    - data_m: indicator matrix for missingness
+    
+  Returns:
+    - m_rmse: modified Root Mean Squared Error
+  '''
+  if rmse_cat == None: 
+    rmse_cat = 0
+  if rmse_num == None:
+    rmse_num = 0
+  
+  m_rmse = np.sqrt((rmse_num**2) + (rmse_cat**2))
+    
+  return m_rmse
 
-######## NEW METHOD ######################
 def pfc(ori_data, imputed_data, data_m, data_name): # No taking into consideration category belonging now, to be fixed
   '''Compute PFC between ori_data and imputed_data
   
@@ -226,7 +242,7 @@ def pfc(ori_data, imputed_data, data_m, data_name): # No taking into considerati
     N_correct = np.sum(ori_data_cat[data_m_bool] == imputed_data_cat[data_m_bool])
 
     # Calculate PFC
-    pfc = (1 - (N_correct/N_missing))*100
+    pfc = (1 - (N_correct/N_missing))*100 # Number of incorrect / Number total missing
     
     return pfc
 
