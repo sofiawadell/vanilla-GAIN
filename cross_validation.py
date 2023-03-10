@@ -8,14 +8,14 @@ from datasets import datasets
 
 from sklearn.model_selection import KFold
 from gain import gain
-from utils import normalization, rmse_num_loss, pfc
+from utils import normalization, rmse_num_loss, pfc, rmse_cat_loss, m_rmse_loss
 
-data_name = "news"
+data_name = "letter"
 miss_rate = 10
 
  # Load training data and test data
 train_ori_data_x, train_miss_data_x, train_data_m, \
-test_ori_data_x, test_miss_data_x, test_data_m = data_loader(data_name, miss_rate) 
+test_ori_data_x, test_miss_data_x, test_data_m, norm_params_train = data_loader(data_name, miss_rate) 
 
 # Define the range of hyperparameters to search over
 param_grid = {'batch_size': [64, 128, 256],
@@ -35,8 +35,9 @@ results = []
 # Loop over all combinations and fit the estimator
 for params in param_combinations:
     param_dict = dict(zip(param_grid.keys(), params))
+    all_m_rmse = []
     all_rmse_num = []
-    all_pfc_scores = []
+    all_rmse_cat = []
 
     for train_index, val_index in kf.split(train_miss_data_x):
       # Split in train and validation for fold indexes
@@ -48,29 +49,41 @@ for params in param_combinations:
       imputed_data_val = gain(train_x, val_x, param_dict)  
 
       # Evaluate performance
-      rmse_num = rmse_num_loss(val_full, imputed_data_val, val_m, data_name)
+      rmse_num = rmse_num_loss(val_full, imputed_data_val, val_m, data_name, norm_params_train)
+      rmse_cat = rmse_cat_loss(val_full, imputed_data_val, val_m, data_name)
+      m_rmse = m_rmse_loss(rmse_num, rmse_cat)
+      
       all_rmse_num.append(rmse_num)
+      all_rmse_cat.append(rmse_cat)
+      all_m_rmse.append(m_rmse)
 
-      pfc_score = pfc(val_full, imputed_data_val, val_m, data_name)
-      all_pfc_scores.append(pfc_score)
-
-      print(f'Hyperparameters: {param_dict}, RMSE num: {rmse_num}, PFC: {pfc_score}')
+      print(f'Hyperparameters: {param_dict}, mRMSE: {m_rmse}, RMSE num: {rmse_num}, RMSE cat: {rmse_cat}')
 
     # Calculate the mean RMSE across all folds for this param combination
-    average_rmse_num = np.mean(all_rmse_num)
-    average_pcf_score = np.mean(all_pfc_scores)
+    if all(element == None for element in all_rmse_num):
+      average_rmse_num = None
+      average_rmse_cat = np.mean(all_rmse_cat)
+      average_m_rmse = np.mean(all_m_rmse)
+    elif all(element == None for element in all_rmse_cat):
+      average_rmse_num = np.mean(all_rmse_num)
+      average_rmse_cat = None
+      average_m_rmse = np.mean(all_m_rmse)
+    else:
+      average_rmse_num = np.mean(all_rmse_num)
+      average_rmse_cat = np.mean(all_rmse_cat)
+      average_m_rmse = np.mean(all_m_rmse)
 
     # Add mean to params dict
-    results.append({'params': param_dict, 'scores':[average_rmse_num, average_pcf_score]})
+    results.append({'params': param_dict, 'scores':[average_m_rmse, average_rmse_num, average_rmse_cat]})
 
-# Print the best hyperparameters and their corresponding performance metric
+# Print all hyperparameters and their corresponding performance metric
 for item in results:
     print('Params:', item['params'])
     print('Scores:', item['scores'])
 
-# Select the parameters  with the lowest RMSE score
-best_params_rmse = min(results, key=lambda x: x['scores'][0])['params']
-best_params_pfc = min(results, key=lambda x: x['scores'][1])['params']
+# Select the parameters  with the lowest mRMSE score
+best_params = min(results, key=lambda x: x['scores'][0])['params']
+matching_result = next((result for result in results if result['params'] == best_params), None)
+best_params_m_rmse, best_params_rmse_num, best_params_rmse_cat = matching_result['scores']
 
-print('Best parameter selection for numerical: ', best_params_rmse)
-print('Best parameter selection for categorical: ', best_params_pfc)
+print(f'Best parameter selection for mRMSE: {best_params}, mRMSE: {best_params_m_rmse}, RMSE num: {best_params_rmse_num}, RMSE cat: {best_params_rmse_cat}')
