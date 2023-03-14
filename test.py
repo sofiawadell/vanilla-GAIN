@@ -5,7 +5,6 @@ from datasets import datasets
 all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
 all_missingness = [10, 30, 50, 70]
 
-
 for data_name in all_datasets:
     for missingness in all_missingness:
         target = datasets[data_name]["target"]

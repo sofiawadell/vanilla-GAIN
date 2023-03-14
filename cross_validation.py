@@ -13,7 +13,7 @@ from utils import normalization, rmse_num_loss, pfc, rmse_cat_loss, m_rmse_loss
 data_name = "letter"
 miss_rate = 10
 
- # Load training data and test data
+# Load training data and test data
 train_ori_data_x, train_miss_data_x, train_data_m, \
 test_ori_data_x, test_miss_data_x, test_data_m, norm_params_train = data_loader(data_name, miss_rate) 
 

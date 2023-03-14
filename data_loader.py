@@ -39,8 +39,8 @@ def data_loader (data_name, miss_rate):
     test_miss_data_x: data with missing values
     test_data_m: indicator matrix for missing components
   '''
-  if miss_rate != 10 or 30 or 50 or 70:
-    ValueError("Missing rate not existing, choose 10%, 30%, 50% or 70%")
+  if miss_rate != 10 or 30 or 50:
+    ValueError("Missing rate not existing, choose 10%, 30% or 50%")
 
   ## Training data
   ## Load training data with missingness
