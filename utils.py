@@ -50,16 +50,17 @@ def normalization (data, parameters=None):
   
   if parameters is None:
   
-    # MixMax normalization
+    # MinMax normalization
     min_val = np.zeros(dim)
     max_val = np.zeros(dim)
-    
+  
+
     # For each dimension
     for i in range(dim):
       min_val[i] = np.nanmin(norm_data[:,i])
-      norm_data[:,i] = norm_data[:,i] - np.nanmin(norm_data[:,i])
       max_val[i] = np.nanmax(norm_data[:,i])
-      norm_data[:,i] = norm_data[:,i] / (np.nanmax(norm_data[:,i]) - min_val[i] + 1e-6)   
+      norm_data[:,i] = norm_data[:,i] - min_val[i]
+      norm_data[:,i] = norm_data[:,i] / (max_val[i] - min_val[i] + 1e-6)   
       
     # Return norm_parameters for renormalization
     norm_parameters = {'min_val': min_val,
