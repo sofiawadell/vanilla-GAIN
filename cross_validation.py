@@ -10,8 +10,8 @@ from sklearn.model_selection import KFold
 from gain import gain
 from utils import normalization, rmse_num_loss, pfc, rmse_cat_loss, m_rmse_loss
 
-data_name = "letter"
-miss_rate = 10
+data_name = "news"
+miss_rate = 50
 
 # Load training data and test data
 train_ori_data_x, train_miss_data_x, train_data_m, \

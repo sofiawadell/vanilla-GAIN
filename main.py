@@ -28,6 +28,7 @@ from sklearn.preprocessing import OneHotEncoder
 from data_loader import data_loader
 from gain import gain
 from utils import rmse_num_loss, rmse_cat_loss, pfc
+from datasets import datasets
 
 def main (args):
   '''Main function for GAIN algorithm.
@@ -55,7 +56,7 @@ def main (args):
   
   # Load training data and test data
   train_ori_data, train_miss_data, train_data_m, \
-  test_ori_data, test_miss_data, test_data_m, norm_params_train = data_loader(data_name, miss_rate) 
+  test_ori_data, test_miss_data, test_data_m, norm_params_train, column_names = data_loader(data_name, miss_rate) 
   
   # Impute missing data for test data
   test_imputed_data = gain(train_miss_data, test_miss_data, gain_parameters)
@@ -69,11 +70,23 @@ def main (args):
   # Report the PFC performance for test data
   pfc_categorical = pfc(test_ori_data, test_imputed_data, test_data_m, data_name)
   
+  if rmse_num != None:
+    rmse_num = np.round(rmse_num, 4)
+  if rmse_cat != None:
+    rmse_cat = np.round(rmse_cat, 4)
+  if pfc_categorical != None:
+    pfc_categorical = np.round(pfc_categorical, 4)
+
   print()
   print('Dataset: ' + str(data_name))
-  print('RMSE - Numerical Performance: ' + str(np.round(rmse_num, 4)))
-  print('RMSE - Categorical Performance: ' + str(np.round(rmse_cat, 4)))
-  print('PFC - Categorical Performance: ' + str(np.round(pfc_categorical, 4)) + '%')
+  print('RMSE - Numerical Performance: ' + str(rmse_num))
+  print('RMSE - Categorical Performance: ' + str(rmse_cat))
+  print('PFC - Categorical Performance: ' + str(pfc_categorical))
+
+  # Save imputed data to csv
+  filename_imputed = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)
+  df = pd.DataFrame(test_imputed_data, columns=column_names)
+  df.to_csv(filename_imputed, index=False)
   
   return test_imputed_data, rmse_num, rmse_cat, pfc_categorical
 
@@ -84,7 +97,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--data_name',
       choices=['letter','news', 'bank', 'mushroom', 'credit', 'basic_test_coded'],
-      default='bank',
+      default='credit',
       type=str)
   parser.add_argument(
       '--miss_rate',
@@ -94,26 +107,28 @@ if __name__ == '__main__':
   parser.add_argument(
       '--batch_size',
       help='the number of samples in mini-batch',
-      default=128,
+      default=256,
       type=int)
   parser.add_argument(
       '--hint_rate',
       help='hint probability',
-      default=0.9,
+      default=0.1,
       type=float)
   parser.add_argument(
       '--alpha',
       help='hyperparameter',
-      default=100,
+      default=10,
       type=float)
   parser.add_argument(
       '--iterations',
       help='number of training interations',
-      default=1000,
+      default=10000,
       type=int)
   
   args = parser.parse_args() 
   
   # Calls main function  
   imputed_data, rmse_num, rmse_cat, pfc_categorical = main(args)
+
+
 
