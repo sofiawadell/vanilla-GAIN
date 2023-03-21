@@ -147,7 +147,6 @@ def gain (train_data_x, test_data_x, gain_parameters):
     G_loss = G_loss_temp + alpha * MSE_train_loss 
 
     # MSE Performance metric 
-
     MSE_test_loss = torch.mean(((1-M) * X - (1-M) * G_sample)**2) / torch.mean(1-M)  # we compute imputation loss, MSE for unknown (missing) values
     return G_loss, MSE_train_loss, MSE_test_loss
   
