@@ -31,12 +31,12 @@ from tqdm import tqdm
 import torch.optim
 import torch.nn.functional as F
 
-from utils import normalization, renormalization, rounding
+from utils import normalization, renormalization, rounding, rounding_discrete
 from utils import xavier_init
 from utils import binary_sampler, uniform_sampler, sample_batch_index
+from datasets import datasets
 
-
-def gain (train_data_x, test_data_x, gain_parameters):
+def gain (train_data_x, test_data_x, gain_parameters, data_name):
   '''Impute missing values in data_x
   
   Args:
@@ -63,6 +63,9 @@ def gain (train_data_x, test_data_x, gain_parameters):
   # Other parameters for training data
   no, dim = train_data_x.shape
   test_no, dim = test_data_x.shape
+
+  # Find number of contionous columns
+  n_con_cols = len(datasets[data_name]["num_cols"])
   
   # Hidden state dimensions
   h_dim = int(dim)
@@ -93,6 +96,8 @@ def gain (train_data_x, test_data_x, gain_parameters):
   G_b2 = torch.tensor(np.zeros(shape = [h_dim]), requires_grad=True)
   G_W3 = torch.tensor(xavier_init([h_dim, dim]), requires_grad=True)
   G_b3 = torch.tensor(np.zeros(shape = [dim]), requires_grad=True)
+  #G_W3 = torch.tensor(xavier_init([n_con_cols, n_con_cols]), requires_grad=True)
+  #G_b3 = torch.tensor(np.zeros(shape = [n_con_cols]), requires_grad=True)
   
   theta_G = [G_W1, G_W2, G_W3, G_b1, G_b2, G_b3]
   
@@ -104,8 +109,9 @@ def gain (train_data_x, test_data_x, gain_parameters):
     G_h1 = F.relu(torch.matmul(inputs, G_W1) + G_b1)
     G_h2 = F.relu(torch.matmul(G_h1, G_W2) + G_b2)   
     # MinMax normalized output
-    G_prob = torch.sigmoid(torch.matmul(G_h2, G_W3) + G_b3) 
+    G_prob = torch.sigmoid(torch.matmul(G_h2, G_W3) + G_b3)
     return G_prob
+
       
   # Discriminator
   def discriminator(new_x, h):
@@ -223,10 +229,35 @@ def gain (train_data_x, test_data_x, gain_parameters):
   imputed_data_test = renormalization(imputed_data_test, norm_params_train)  
   
   # Rounding
-  imputed_data_test = rounding(imputed_data_test, test_data_x)
+  imputed_data_test = rounding_discrete(imputed_data_test, test_data_x, data_name)
+  #imputed_data_test = rounding(imputed_data_test, test_data_x)
           
   return imputed_data_test
 
+'''Generator
+  def generator_gumbel(new_x, m, tau=1.0):
+    # Concatenate Mask and Data
+    inputs = torch.cat(dim=1, tensors=[new_x, m]) 
+    G_h1 = F.relu(torch.matmul(inputs, G_W1) + G_b1)
+    G_h2 = F.relu(torch.matmul(G_h1, G_W2) + G_b2)
+
+    # Separate categorical and continuous columns
+    con_inputs = G_h2[:, :n_con_cols]
+    dis_inputs = G_h2[:, :n_con_cols]
+
+    # Gumbel-Softmax normalized output for categorical columns
+    logits_cat = torch.matmul(con_inputs, G_W3[:, :n_con_cols]) + G_b3[:, :n_con_cols]
+    G_prob_cat = F.gumbel_softmax(logits_cat, tau=tau, dim=-1)
+
+    # Sigmoid normalized output for continuous columns
+    logits_cont = torch.matmul(dis_inputs, G_W3[:, :n_con_cols]) + G_b3[:, :n_con_cols]
+    G_prob_cont = torch.sigmoid(logits_cont)
+
+    # Concatenate categorical and continuous columns
+    G_prob = torch.cat((G_prob_cat, G_prob_cont), dim=1)
+    logits = torch.cat((logits_cat, logits_cont), dim=1)
+
+    return G_prob'''
 
 ############### ORIGINAL CODE ###################################################
 # coding=utf-8
