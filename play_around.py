@@ -2,26 +2,21 @@ import pandas as pd
 import numpy as np
 from utils import normalization, renormalization
 
-data_name = "letter"
+data_name = "news"
 missingness = 10
 
-filename_train = '{}{}_{}_{}.csv'.format('one_hot_train_data_wo_target/one_hot_', data_name, 'train', missingness)
-filename_test = '{}{}_{}_{}.csv'.format('one_hot_test_data_wo_target/one_hot_', data_name, 'test', missingness)
+filename_train = '{}{}_{}_{}.csv'.format('preprocessed_data/one_hot_train_data_wo_target/one_hot_', data_name, 'train', missingness)
+filename_test = '{}{}_{}_{}.csv'.format('preprocessed_data/one_hot_test_data_wo_target/one_hot_', data_name, 'test', missingness)
 
 df_train = pd.read_csv(filename_train)
 df_test = pd.read_csv(filename_test)
 
-np_array = df_train.values
+cat_cols = ['data_channel', 'weekday', 'is_weekend']
+count = []
 
-norm_data, norm_params = normalization(np_array)
-max_values = np.nanmax(norm_data, axis=0)
-min_values = np.nanmin(norm_data, axis=0)
+for i in range(len(cat_cols)):
+    count.append(sum(df_train.columns.str.contains(cat_cols[i], regex=True)))
 
-print(max_values)
-print(min_values)
-
-re_norm_data = renormalization(norm_data, norm_params)
-
-if np.array_equal(re_norm_data, np_array):
-    print("Correct")
+cat_cols = {cat_cols[i]: count[i] for i in range(len(cat_cols))}
+print(cat_cols)
 

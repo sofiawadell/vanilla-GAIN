@@ -1,76 +1,104 @@
 import numpy as np
 import pandas as pd
+
 from sklearn.model_selection import cross_val_score, train_test_split
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, mean_squared_error, roc_auc_score
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelBinarizer, StandardScaler
+from sklearn.linear_model import LinearRegression
+
 from datasets import datasets
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import roc_auc_score
 
-data_name = "credit"
-miss_rate = 10
+#all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
+all_datasets = ["news", "letter", "mushroom", "credit", "bank"]
+all_missingness = [10]
 
-filename_imputed_data = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)
-imputed_data_wo_target = pd.read_csv(filename_imputed_data)
+def linearRegression(X_train, X_test, y_train, y_test):
+    # Create a LinearRegression object
+    lr = LinearRegression()
 
-filename_original_data = 'preprocessed_data/one_hot_test_data/one_hot_{}_test.csv'.format(data_name)
-original_data = pd.read_csv(filename_original_data)
+    # Fit the model to the training data
+    lr.fit(X_train, y_train)
 
-# Split the data into features (X) and target (y)
-X = imputed_data_wo_target
-y = original_data[datasets[data_name]["target"]]
+    # Make predictions on the test data
+    y_pred = lr.predict(X_test)
 
-# Split the data into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    # Calculate the mean squared error
+    mse = mean_squared_error(y_test, y_pred)
 
-# Scale the features using StandardScaler
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+    return mse
 
-# Find best k value
-k_values = [i for i in range (1,31)]
-scores = []
+def kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test):
+   # Scale the features using StandardScaler
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
 
-scaler = StandardScaler()
-X = scaler.fit_transform(X)
+    # Find best k value
+    k_values = [i for i in range (1,31)]
+    scores = []
 
-for k in k_values:
-    knn = KNeighborsClassifier(n_neighbors=k)
-    score = cross_val_score(knn, X, y, cv=5)
-    scores.append(np.mean(score))
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
 
-fig, ax = plt.subplots()
+    for k in k_values:
+        knn = KNeighborsClassifier(n_neighbors=k)
+        score = cross_val_score(knn, X, y, cv=5)
+        scores.append(np.mean(score))
 
-# Plot the data
-ax.plot(k_values, scores)
+    best_index = np.argmax(scores)
+    best_k = k_values[best_index]
 
-# Set the axis labels and title
-ax.set_xlabel("K Values")
-ax.set_ylabel("Accuracy Score")
-plt.show()
+    # Create classifier
+    knn = KNeighborsClassifier(n_neighbors=best_k)
+    knn.fit(X_train, y_train)
 
-best_index = np.argmax(scores)
-best_k = k_values[best_index]
+    # Predict
+    y_pred = knn.predict(X_test)
 
-# Create classifier
-knn = KNeighborsClassifier(n_neighbors=best_k)
-knn.fit(X_train, y_train)
+    # Convert string targets to binary form
+    lb = LabelBinarizer()
+    y_test_binary = lb.fit_transform(y_test)
+    y_pred_binary = lb.transform(y_pred)
 
-# Predict
-y_pred = knn.predict(X_test)
+    # Evaluate 
+    accuracy = accuracy_score(y_test_binary, y_pred_binary)
+    auroc = roc_auc_score(y_test_binary, y_pred_binary)
 
-# Evaluate binary case
-accuracy = accuracy_score(y_test, y_pred)
-precision = precision_score(y_test, y_pred)
-recall = recall_score(y_test, y_pred)
-auroc = roc_auc_score(y_test, y_pred)
+    return accuracy, auroc
 
-print("Accuracy:", accuracy)
-print("Precision:", precision)
-print("Recall:", recall)
-print("AUROC:", auroc)
+def main():
+    results = []
 
-# Evaluate multilabel case
+    for data_name in all_datasets:
+       for miss_rate in all_missingness:
+            filename_imputed_data = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)
+            imputed_data_wo_target = pd.read_csv(filename_imputed_data)
+
+            filename_original_data = 'preprocessed_data/one_hot_test_data/one_hot_{}_test.csv'.format(data_name)
+            original_data = pd.read_csv(filename_original_data)
+
+            # Split the data into features (X) and target (y)
+            X = imputed_data_wo_target
+            y = original_data[datasets[data_name]["target"]]
+
+            # Split the data into training and test sets
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+                        
+            if datasets[data_name]["classification"]["model"] == KNeighborsClassifier:
+                accuracy, auroc = kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test)
+                results.append({'dataset': data_name + str(miss_rate), 'scores':{'accuracy': str(accuracy), 'auroc': str(auroc)}})
+            elif datasets[data_name]["classification"]["model"] == LinearRegression:
+                mse = linearRegression(X_train, X_test, y_train, y_test)
+                results.append({'dataset': data_name + str(miss_rate), 'scores':{'mse': str(mse)}})
+            
+    return results
+
+if __name__ == '__main__':   
+  results = main()
+  for item in results:
+    print('Dataset:', item['dataset'])
+    print('Scores:', item['scores'])
+
+

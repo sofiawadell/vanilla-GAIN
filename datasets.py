@@ -1,4 +1,6 @@
 from typing import Any, Dict
+from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsClassifier
 
 datasets: Dict[str, Dict[str, Any]] = {
     "credit": {
@@ -32,19 +34,22 @@ datasets: Dict[str, Dict[str, Any]] = {
         "target": "default payment next month",
         "num_cols": ['LIMIT_BAL', 'AGE','BILL_AMT1', 'BILL_AMT2', 'BILL_AMT3', 'BILL_AMT4', 'BILL_AMT5', 'BILL_AMT6',
                      'PAY_AMT1', 'PAY_AMT2', 'PAY_AMT3', 'PAY_AMT4', 'PAY_AMT5', 'PAY_AMT6' ], 
-        "cat_cols": ['SEX', 'EDUCATION', 'MARRIAGE', 'PAY_0', 'PAY_2','PAY_3','PAY_4','PAY_5','PAY_6'],
-        "cat_cols_2": {
+        "cat_cols": {
             "SEX": 2,
-            "EDUCATION": 6, 
+            "EDUCATION": 7, 
             "MARRIAGE": 4, 
             "PAY_0": 11, 
             "PAY_2": 11, 
             "PAY_3": 11, 
             "PAY_4": 11, 
-            "PAY_5": 11, 
-            "PAY_6": 11, 
+            "PAY_5": 10, 
+            "PAY_6": 10, 
             },
-        "drop_cols": ['ID']
+        "drop_cols": ['ID'],
+        "classification": {
+            "model": KNeighborsClassifier,
+            "class-case": "binary"
+            },
         }, 
     "letter": {
         "name": "letter",
@@ -71,6 +76,10 @@ datasets: Dict[str, Dict[str, Any]] = {
         "num_cols": ['col2', 'col3','col4', 'col5','col6', 'col7','col8', 'col9','col10', 'col11',
                      'col12', 'col13','col14', 'col15','col16', 'col17'], 
         "cat_cols": [],
+        "classification": {
+            "model": KNeighborsClassifier,
+            "class-case": "multiclass"
+            },
         }, 
     "bank": {
         "name": "bank",
@@ -99,8 +108,22 @@ datasets: Dict[str, Dict[str, Any]] = {
             },
         "target": "y",
         "num_cols": ['age', 'duration', 'campaign', 'pdays', 'previous', 'emp.var.rate', 'cons.price.idx', 'cons.conf.idx', 'euribor3m', 'nr.employed'], 
-        "cat_cols": ['job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month',
-                     'day_of_week', 'poutcome'],
+        "cat_cols": {
+            'job': 12, 
+            'marital': 4,
+            'education': 8,
+            'default': 3, 
+            'housing': 3, 
+            'loan': 3, 
+            'contact': 2, 
+            'month': 10,
+            'day_of_week': 5,
+            'poutcome': 3,
+            },
+        "classification": {
+            "model": KNeighborsClassifier,
+            "class-case": "binary"
+            },
         }, 
     "mushroom": {
         "name": "mushroom",
@@ -131,9 +154,34 @@ datasets: Dict[str, Dict[str, Any]] = {
             },
         "target": "class",
         "num_cols": [], 
-        "cat_cols": ['cap-shape', 'cap-surface', 'cap-color', 'bruises', 'odor', 'gill-attachment', 'gill-spacing', 'gill-size', 'gill-color',
-                     'stalk-shape', 'stalk-root', 'stalk-surface-above-ring', 'stalk-surface-below-ring', 'stalk-color-above-ring', 'stalk-color-below-ring',
-                     'veil-type', 'veil-color', 'ring-number', 'ring-type', 'spore-print-color', 'population', 'habitat']
+        "cat_cols": {
+            'cap-shape': 6, 
+            'cap-surface': 4, 
+            'cap-color': 10, 
+            'bruises': 2, 
+            'odor': 9, 
+            'gill-attachment': 2, 
+            'gill-spacing': 2, 
+            'gill-size': 2, 
+            'gill-color': 12, 
+            'stalk-shape': 2, 
+            'stalk-root': 5, 
+            'stalk-surface-above-ring': 4, 
+            'stalk-surface-below-ring': 4, 
+            'stalk-color-above-ring': 9, 
+            'stalk-color-below-ring': 9, 
+            'veil-type': 1, 
+            'veil-color': 4, 
+            'ring-number': 3, 
+            'ring-type': 5, 
+            'spore-print-color': 9, 
+            'population': 6, 
+            'habitat': 7
+            },
+        "classification": {
+            "model": KNeighborsClassifier,
+            "class-case": "binary"
+            },
         }, 
     "news": {
         "name": "news",
@@ -194,9 +242,16 @@ datasets: Dict[str, Dict[str, Any]] = {
                      'self_reference_avg_sharess','LDA_00','LDA_01','LDA_02','LDA_03','LDA_04','global_subjectivity','global_sentiment_polarity','global_rate_positive_words','global_rate_negative_words','rate_positive_words',
                      'rate_negative_words','avg_positive_polarity','min_positive_polarity','max_positive_polarity','avg_negative_polarity','min_negative_polarity','max_negative_polarity','title_subjectivity','title_sentiment_polarity',
                      'abs_title_subjectivity','abs_title_sentiment_polarity'], 
-        "cat_cols": ['data_channel', 'weekday', 'is_weekend']
+        "cat_cols": {'data_channel': 7, 'weekday': 7, 'is_weekend': 2},
+        "classification": {
+            "model": LinearRegression,
+            "class-case": "binary"
+            },
         }, 
-        "basic_test": {
+}
+
+
+'''"basic_test": {
         "columns": { 
             "sex": "categorical",
             "age": "numerical",
@@ -204,5 +259,4 @@ datasets: Dict[str, Dict[str, Any]] = {
             },
         "num_cols": ['age'], 
         "cat_cols": ['sex', 'color'],
-        },
-}
+        },'''

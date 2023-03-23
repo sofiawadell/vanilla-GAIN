@@ -27,7 +27,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 from data_loader import data_loader
 from gain import gain
-from utils import rmse_num_loss, rmse_cat_loss, pfc
+from utils import rmse_num_loss, rmse_cat_loss, pfc, m_rmse_loss
 from datasets import datasets
 
 def main (args):
@@ -59,13 +59,16 @@ def main (args):
   test_ori_data, test_miss_data, test_data_m, norm_params_train, column_names = data_loader(data_name, miss_rate) 
   
   # Impute missing data for test data
-  test_imputed_data = gain(train_miss_data, test_miss_data, gain_parameters)
+  test_imputed_data = gain(train_miss_data, test_miss_data, gain_parameters, data_name)
   
   # Report the numerical RMSE performance for test data
   rmse_num = rmse_num_loss(test_ori_data, test_imputed_data, test_data_m, data_name, norm_params_train)
 
   # Report the categorical RMSE performance for test data
   rmse_cat = rmse_cat_loss(test_ori_data, test_imputed_data, test_data_m, data_name)
+  
+  # Report the mRMSE performance for test data
+  m_rmse = m_rmse_loss(rmse_num, rmse_cat)
 
   # Report the PFC performance for test data
   pfc_categorical = pfc(test_ori_data, test_imputed_data, test_data_m, data_name)
@@ -76,9 +79,11 @@ def main (args):
     rmse_cat = np.round(rmse_cat, 4)
   if pfc_categorical != None:
     pfc_categorical = np.round(pfc_categorical, 4)
+  np.round(m_rmse, 4)
 
   print()
   print('Dataset: ' + str(data_name))
+  print('mRMSE: ' + str(m_rmse))
   print('RMSE - Numerical Performance: ' + str(rmse_num))
   print('RMSE - Categorical Performance: ' + str(rmse_cat))
   print('PFC - Categorical Performance: ' + str(pfc_categorical))
@@ -88,7 +93,7 @@ def main (args):
   df = pd.DataFrame(test_imputed_data, columns=column_names)
   df.to_csv(filename_imputed, index=False)
   
-  return test_imputed_data, rmse_num, rmse_cat, pfc_categorical
+  return test_imputed_data, m_rmse, rmse_num, rmse_cat, pfc_categorical
 
 if __name__ == '__main__':  
   
@@ -96,8 +101,8 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--data_name',
-      choices=['letter','news', 'bank', 'mushroom', 'credit', 'basic_test_coded'],
-      default='credit',
+      choices=['letter','news', 'bank', 'mushroom', 'credit'],
+      default='letter',
       type=str)
   parser.add_argument(
       '--miss_rate',
@@ -117,18 +122,18 @@ if __name__ == '__main__':
   parser.add_argument(
       '--alpha',
       help='hyperparameter',
-      default=10,
+      default=2,
       type=float)
   parser.add_argument(
       '--iterations',
       help='number of training interations',
-      default=10000,
+      default=10,
       type=int)
   
   args = parser.parse_args() 
   
   # Calls main function  
-  imputed_data, rmse_num, rmse_cat, pfc_categorical = main(args)
+  imputed_data, m_rmse, rmse_num, rmse_cat, pfc_categorical = main(args)
 
 
 

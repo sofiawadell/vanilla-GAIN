@@ -24,6 +24,7 @@
 (8) sample_batch_index: sample random batch index
 '''
 # Import datasets information
+import itertools
 from datasets import datasets
 
 # Necessary packages
@@ -103,7 +104,6 @@ def renormalization (norm_data, norm_parameters):
     
   return renorm_data
 
-
 def rounding (imputed_data, data_x):
   '''Round imputed data for categorical variables.
   
@@ -124,6 +124,64 @@ def rounding (imputed_data, data_x):
     if len(np.unique(temp)) < 20:
       rounded_data[:, i] = np.round(rounded_data[:, i])
       
+  return rounded_data
+
+def rounding_discrete(imputed_data, data_x, data_name):
+  '''Round imputed data for categorical variables. 
+  Ensure to only get one "1" per categorical feature.
+  
+  Args:
+    - imputed_data: imputed data
+    - data_x: original data with missing values
+    
+  Returns:
+    - rounded_data: rounded imputed data
+  '''
+  no, dim = data_x.shape
+  rounded_data = imputed_data.copy()
+
+  n_num_cols = len(datasets[data_name]["num_cols"])
+  cat_cols = datasets[data_name]["cat_cols"]
+
+  if (len(cat_cols) == 0):
+    return rounded_data
+
+  # Add the start indexes for each categorical feature
+  cat_cols_start_indexes = cat_cols.copy()
+  cumulative_sums = [0] + list(itertools.accumulate(cat_cols_start_indexes.values()))
+  start_indexes = [x + n_num_cols for x in cumulative_sums[:-1]]
+
+  for i, feature_name in enumerate(cat_cols_start_indexes.keys()):
+    start_index = start_indexes[i]
+    cat_cols_start_indexes[feature_name] = start_index
+  
+  # Loop through each value in the matrix
+  row = 0
+  while row < no:
+      col = n_num_cols
+      while col < dim:
+          # check if the current value is NaN
+          if np.isnan(data_x[row, col]):        
+              for feature_name, index_value in cat_cols_start_indexes.items():
+                if index_value == col: # We found the correct feature
+                  n_categories = cat_cols[feature_name] 
+                  break
+
+              # Extract the current value and the next n_categories-1 values
+              values = imputed_data[row, col:col+n_categories]
+              
+              # Find the index of the maximum value
+              max_index = np.argmax(values)
+
+              # Set the maximum value to 1 and the rest to 0 in rounded_data
+              rounded_data[row, col:col+n_categories] = 0
+              rounded_data[row, col+max_index] = 1
+              
+              # skip the next n_categories values
+              col += n_categories - 1
+          col += 1
+      row += 1
+    
   return rounded_data
 
 def rmse_num_loss(ori_data, imputed_data, data_m, data_name, norm_params):

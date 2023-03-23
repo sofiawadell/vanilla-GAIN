@@ -8,14 +8,14 @@ from datasets import datasets
 
 from sklearn.model_selection import KFold
 from gain import gain
-from utils import normalization, rmse_num_loss, pfc, rmse_cat_loss, m_rmse_loss
+from utils import rmse_num_loss, pfc, rmse_cat_loss, m_rmse_loss
 
 data_name = "news"
-miss_rate = 50
+miss_rate = 30
 
 # Load training data and test data
 train_ori_data_x, train_miss_data_x, train_data_m, \
-test_ori_data_x, test_miss_data_x, test_data_m, norm_params_train = data_loader(data_name, miss_rate) 
+test_ori_data_x, test_miss_data_x, test_data_m, norm_params_train, column_names = data_loader(data_name, miss_rate) 
 
 # Define the range of hyperparameters to search over
 param_grid = {'batch_size': [64, 128, 256],
