@@ -23,6 +23,7 @@ from __future__ import print_function
 import argparse
 import numpy as np
 import pandas as pd
+import time as td
 from sklearn.preprocessing import OneHotEncoder
 
 from data_loader import data_loader
@@ -58,8 +59,15 @@ def main (args):
   train_ori_data, train_miss_data, train_data_m, \
   test_ori_data, test_miss_data, test_data_m, norm_params_train, column_names = data_loader(data_name, miss_rate) 
   
+  # Start timer
+  start_time = td.time()
+
   # Impute missing data for test data
   test_imputed_data = gain(train_miss_data, test_miss_data, gain_parameters, data_name)
+
+  # End timer
+  end_time = td.time()
+  ex_time = end_time - start_time
   
   # Report the numerical RMSE performance for test data
   rmse_num = rmse_num_loss(test_ori_data, test_imputed_data, test_data_m, data_name, norm_params_train)
@@ -81,12 +89,14 @@ def main (args):
     pfc_categorical = np.round(pfc_categorical, 4)
   np.round(m_rmse, 4)
 
+  # Print the results
   print()
   print('Dataset: ' + str(data_name))
   print('mRMSE: ' + str(m_rmse))
   print('RMSE - Numerical Performance: ' + str(rmse_num))
   print('RMSE - Categorical Performance: ' + str(rmse_cat))
   print('PFC - Categorical Performance: ' + str(pfc_categorical))
+  print('Execution time: ' + str(ex_time))
 
   # Save imputed data to csv
   filename_imputed = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)

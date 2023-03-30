@@ -63,9 +63,6 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name):
   # Other parameters for training data
   no, dim = train_data_x.shape
   test_no, dim = test_data_x.shape
-
-  # Find number of contionous columns
-  n_con_cols = len(datasets[data_name]["num_cols"])
   
   # Hidden state dimensions
   h_dim = int(dim)

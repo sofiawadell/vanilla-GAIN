@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''Data loader for UCI letter, spam and MNIST datasets.
-'''
 # Import datasets
 from datasets import datasets
 

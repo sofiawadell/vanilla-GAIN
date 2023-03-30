@@ -250,13 +250,3 @@ datasets: Dict[str, Dict[str, Any]] = {
         }, 
 }
 
-
-'''"basic_test": {
-        "columns": { 
-            "sex": "categorical",
-            "age": "numerical",
-            "color": "categorical",
-            },
-        "num_cols": ['age'], 
-        "cat_cols": ['sex', 'color'],
-        },'''

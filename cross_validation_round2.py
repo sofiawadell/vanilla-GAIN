@@ -4,13 +4,20 @@ import pandas as pd
 from sklearn.metrics import make_scorer
 from data_loader import data_loader
 from datasets import datasets
-from parameters_options import parameter_options
+from parameter_options import parameter_options
 
 from sklearn.model_selection import KFold
 from gain import gain
 from utils import rmse_num_loss, rmse_cat_loss, m_rmse_loss
 
-all_datasets = ["news", "mushroom", "letter", "bank"]
+'''
+Description: 
+
+Cross-validation round 2 to find optimal parameters per dataset
+
+'''
+
+all_datasets = ["news", "mushroom", "letter", "bank", "credit"]
 all_missingness = [10, 30, 50]
 
 def main():
@@ -49,7 +56,7 @@ def main():
                     _, val_m = train_data_m[train_index], train_data_m[val_index]
 
                     # Perform gain imputation
-                    imputed_data_val = gain(train_x, val_x, param_dict)  
+                    imputed_data_val = gain(train_x, val_x, param_dict, data_name)  
 
                     # Evaluate performance
                     rmse_num = rmse_num_loss(val_full, imputed_data_val, val_m, data_name, norm_params_train)

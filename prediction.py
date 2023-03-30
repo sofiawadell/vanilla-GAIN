@@ -84,7 +84,7 @@ def main():
             y = original_data[datasets[data_name]["target"]]
 
             # Split the data into training and test sets
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
                         
             if datasets[data_name]["classification"]["model"] == KNeighborsClassifier:
                 accuracy, auroc = kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test)
