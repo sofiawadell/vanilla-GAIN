@@ -21,7 +21,7 @@ import pandas as pd
 from utils import binary_sampler, normalization
 
 
-def data_loader (data_name, miss_rate):
+def data_loader (data_name, miss_rate, extra_amount=0):
   '''Loads datasets and the missingness.
   
   Args:
@@ -43,16 +43,24 @@ def data_loader (data_name, miss_rate):
   ## Training data
   ## Load training data with missingness
   if data_name in datasets.keys():
-    file_name = 'preprocessed_data/one_hot_train_data_wo_target/one_hot_'+data_name+'_train_{miss_rate}.csv'.format(miss_rate=str(miss_rate))
+    if extra_amount == 0:
+      file_name = 'preprocessed_data/one_hot_train_data_wo_target/one_hot_'+data_name+'_train_{miss_rate}.csv'.format(miss_rate=str(miss_rate))
+    else: 
+      file_name = 'preprocessed_data/one_hot_train_data_wo_target_extra_{}/one_hot_{}_train_{}_extra_{}.csv'.format(extra_amount, data_name, miss_rate, extra_amount)
+    
     df = pd.read_csv(file_name)
     column_names = df.columns.tolist()
     train_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, usecols=range(0, -1), skip_header=1)
   else:
     ValueError("Dataset not found")
 
-  ## Load complete training 
+  ## Load complete training data 
   if data_name in datasets.keys():
-    file_name = 'preprocessed_data/one_hot_train_data_wo_target/one_hot_'+data_name+'_train.csv'
+    if extra_amount == 0:
+      file_name = 'preprocessed_data/one_hot_train_data_wo_target/one_hot_'+data_name+'_train.csv'
+    else: 
+      file_name = 'preprocessed_data/one_hot_train_data_wo_target_extra_{}/one_hot_{}_train_full{}_extra_{}.csv'.format(extra_amount, data_name, miss_rate, extra_amount)
+    
     train_data_x = np.genfromtxt(file_name, delimiter=",", usecols=range(0, -1), skip_header=1)
   else:
     ValueError("Dataset not found")
@@ -70,7 +78,7 @@ def data_loader (data_name, miss_rate):
   else:
     ValueError("Dataset not found")
 
-  ## Load complete training 
+  ## Load complete test data
   if data_name in datasets.keys():
     file_name = 'preprocessed_data/one_hot_test_data_wo_target/one_hot_'+data_name+'_test.csv'
     test_data_x = np.genfromtxt(file_name, delimiter=",", usecols=range(0, -1), skip_header=1)
