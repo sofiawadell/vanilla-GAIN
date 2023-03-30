@@ -104,7 +104,7 @@ def main(all_datasets, all_missingness, all_extra_amounts):
 
 if __name__ == '__main__': 
     #all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
-    all_datasets = ["bank"]
-    all_missingness = [10, 30]  
+    all_datasets = ["credit"]
+    all_missingness = [30]  
     all_extra_amounts = [50, 100]
     main(all_datasets, all_missingness, all_extra_amounts)
