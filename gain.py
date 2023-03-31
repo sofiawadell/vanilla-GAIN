@@ -36,16 +36,19 @@ from utils import xavier_init
 from utils import binary_sampler, uniform_sampler, sample_batch_index
 from datasets import datasets
 
-def gain (train_data_x, test_data_x, gain_parameters, data_name):
-  '''Impute missing values in data_x
+def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imputation):
+  '''Impute missing values in test_data_x
   
   Args:
-    - data_x: original data with missing values
+    - train_data_x: original training data with missing values
+    - test_data_x: original test data with missing values
     - gain_parameters: GAIN network parameters:
       - batch_size: Batch size
       - hint_rate: Hint rate
       - alpha: Hyperparameter
       - iterations: Iterations
+    - data_name: name of dataset
+    - norm_params_imputation: normalization parameters to be used in imputation
       
   Returns:
     - imputed_data: imputed data
@@ -68,10 +71,10 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name):
   h_dim = int(dim)
 
   # Normalization for all columns and test/training
-  train_norm_data_x, norm_params_train = normalization(train_data_x)
+  train_norm_data_x, _ = normalization(train_data_x, norm_params_imputation)
   train_norm_data_x = np.nan_to_num(train_norm_data_x, 0)
 
-  test_norm_data_x, _ = normalization(test_data_x, norm_params_train)
+  test_norm_data_x, _ = normalization(test_data_x, norm_params_imputation)
   test_norm_data_x = np.nan_to_num(test_norm_data_x, 0)
 
   ## GAIN architecture   
@@ -223,11 +226,10 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name):
   imputed_data_test = imputed_data_test.numpy()
 
   # Renormalization for all columns
-  imputed_data_test = renormalization(imputed_data_test, norm_params_train)  
+  imputed_data_test = renormalization(imputed_data_test, norm_params_imputation)  
   
   # Rounding
   imputed_data_test = rounding_discrete(imputed_data_test, test_data_x, data_name)
-  #imputed_data_test = rounding(imputed_data_test, test_data_x)
           
   return imputed_data_test
 

@@ -19,7 +19,7 @@ Cross-validation to find optimal parameters per dataset and miss_rate
 def main(data_name, miss_rate, extra_amount):
   # Load training data and test data
   train_ori_data_x, train_miss_data_x, train_data_m, \
-  _, _, _, norm_params_train, _ = data_loader(data_name, miss_rate, extra_amount) 
+  _, _, _, norm_params_imputation, norm_params_evaluation, _ = data_loader(data_name, miss_rate, extra_amount) 
 
   # Define the range of hyperparameters to search over
   param_grid = {'batch_size': [64, 128, 256],
@@ -50,10 +50,10 @@ def main(data_name, miss_rate, extra_amount):
         _, val_m = train_data_m[train_index], train_data_m[val_index]
 
         # Perform gain imputation
-        imputed_data_val = gain(train_x, val_x, param_dict, data_name)  
+        imputed_data_val = gain(train_x, val_x, param_dict, data_name, norm_params_imputation)  
 
         # Evaluate performance
-        rmse_num = rmse_num_loss(val_full, imputed_data_val, val_m, data_name, norm_params_train)
+        rmse_num = rmse_num_loss(val_full, imputed_data_val, val_m, data_name, norm_params_evaluation)
         rmse_cat = rmse_cat_loss(val_full, imputed_data_val, val_m, data_name)
         m_rmse = m_rmse_loss(rmse_num, rmse_cat)
         

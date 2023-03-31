@@ -50,6 +50,23 @@ datasets: Dict[str, Dict[str, Any]] = {
             "model": KNeighborsClassifier,
             "class-case": "binary"
             },
+        "optimal_parameters": {
+            "ordinary_case": {
+                "batch_size": 64,
+                "hint_rate": 0.1,
+                "alpha": 10
+                }, 
+            "extra_50": {
+                "batch_size": 256,
+                "hint_rate": 45,
+                "alpha": 2
+                }, 
+            "extra_100": {
+                "batch_size": 256,
+                "hint_rate": 45,
+                "alpha": 2
+                }, 
+            }
         }, 
     "letter": {
         "name": "letter",
@@ -80,6 +97,23 @@ datasets: Dict[str, Dict[str, Any]] = {
             "model": KNeighborsClassifier,
             "class-case": "multiclass"
             },
+        "optimal_parameters": {
+            "ordinary_case": {
+                "batch_size": 64,
+                "hint_rate": 0.5,
+                "alpha": 10
+                }, 
+            "extra_50": {
+                "batch_size": 256,
+                "hint_rate": 45,
+                "alpha": 2
+                }, 
+            "extra_100": {
+                "batch_size": 256,
+                "hint_rate": 45,
+                "alpha": 2
+                }, 
+            }
         }, 
     "bank": {
         "name": "bank",
@@ -124,6 +158,23 @@ datasets: Dict[str, Dict[str, Any]] = {
             "model": KNeighborsClassifier,
             "class-case": "binary"
             },
+        "optimal_parameters": {
+            "ordinary_case": {
+                "batch_size": 64,
+                "hint_rate": 0.1,
+                "alpha": 2
+                }, 
+            "extra_50": {
+                "batch_size": 256,
+                "hint_rate": 45,
+                "alpha": 2
+                }, 
+            "extra_100": {
+                "batch_size": 256,
+                "hint_rate": 45,
+                "alpha": 2
+                }, 
+            }
         }, 
     "mushroom": {
         "name": "mushroom",
@@ -182,6 +233,23 @@ datasets: Dict[str, Dict[str, Any]] = {
             "model": KNeighborsClassifier,
             "class-case": "binary"
             },
+        "optimal_parameters": {
+            "ordinary_case": {
+                "batch_size": 128,
+                "hint_rate": 0.1,
+                "alpha": 10
+                }, 
+            "extra_50": {
+                "batch_size": 256,
+                "hint_rate": 45,
+                "alpha": 2
+                }, 
+            "extra_100": {
+                "batch_size": 256,
+                "hint_rate": 45,
+                "alpha": 2
+                }, 
+            }
         }, 
     "news": {
         "name": "news",
@@ -247,6 +315,23 @@ datasets: Dict[str, Dict[str, Any]] = {
             "model": LinearRegression,
             "class-case": "binary"
             },
+        "optimal_parameters": {
+            "ordinary_case": {
+                "batch_size": 256,
+                "hint_rate": 0.1,
+                "alpha": 2
+                }, 
+            "extra_50": {
+                "batch_size": 256,
+                "hint_rate": 45,
+                "alpha": 2
+                }, 
+            "extra_100": {
+                "batch_size": 256,
+                "hint_rate": 45,
+                "alpha": 2
+                }, 
+            }
         }, 
 }
 

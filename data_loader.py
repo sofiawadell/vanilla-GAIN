@@ -43,25 +43,29 @@ def data_loader (data_name, miss_rate, extra_amount=0):
   ## Training data
   ## Load training data with missingness
   if data_name in datasets.keys():
-    if extra_amount == 0:
-      file_name = 'preprocessed_data/one_hot_train_data_wo_target/one_hot_'+data_name+'_train_{miss_rate}.csv'.format(miss_rate=str(miss_rate))
-    else: 
-      file_name = 'preprocessed_data/one_hot_train_data_wo_target_extra_{}/one_hot_{}_train_{}_extra_{}.csv'.format(extra_amount, data_name, miss_rate, extra_amount)
-    
+    file_name = 'preprocessed_data/one_hot_train_data_wo_target/one_hot_'+data_name+'_train_{miss_rate}.csv'.format(miss_rate=str(miss_rate))
+    train_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, usecols=range(0, -1), skip_header=1)
+    _, norm_params_imputation = normalization(train_miss_data_x)
+
     df = pd.read_csv(file_name)
     column_names = df.columns.tolist()
-    train_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, usecols=range(0, -1), skip_header=1)
+
+    if extra_amount != 0:
+      file_name_extra_amount = 'preprocessed_data/one_hot_train_data_wo_target_extra_{}/one_hot_{}_train_{}_extra_{}.csv'.format(extra_amount, data_name, miss_rate, extra_amount)
+      train_miss_data_x = np.genfromtxt(file_name_extra_amount, delimiter=",", filling_values=np.nan, usecols=range(0, -1), skip_header=1)
+
   else:
     ValueError("Dataset not found")
 
   ## Load complete training data 
   if data_name in datasets.keys():
-    if extra_amount == 0:
-      file_name = 'preprocessed_data/one_hot_train_data_wo_target/one_hot_'+data_name+'_train.csv'
-    else: 
-      file_name = 'preprocessed_data/one_hot_train_data_wo_target_extra_{}/one_hot_{}_train_full{}_extra_{}.csv'.format(extra_amount, data_name, miss_rate, extra_amount)
-    
+    file_name = 'preprocessed_data/one_hot_train_data_wo_target/one_hot_'+data_name+'_train.csv'
     train_data_x = np.genfromtxt(file_name, delimiter=",", usecols=range(0, -1), skip_header=1)
+    _, norm_params_evaluation = normalization(train_data_x)
+
+    if extra_amount != 0:
+      file_name_extra_amount = 'preprocessed_data/one_hot_train_data_wo_target_extra_{}/one_hot_{}_train_full{}_extra_{}.csv'.format(extra_amount, data_name, miss_rate, extra_amount)
+      train_data_x = np.genfromtxt(file_name_extra_amount, delimiter=",", usecols=range(0, -1), skip_header=1)
   else:
     ValueError("Dataset not found")
   
@@ -89,11 +93,8 @@ def data_loader (data_name, miss_rate, extra_amount=0):
   missing_values = np.isnan(test_miss_data_x)
   existing_values = ~missing_values
   test_data_m = existing_values.astype(int)
-
-  ## Find normalizing parameters for the full training dataset
-  _, norm_params = normalization(train_data_x)
       
-  return train_data_x, train_miss_data_x, train_data_m, test_data_x, test_miss_data_x, test_data_m, norm_params, column_names
+  return train_data_x, train_miss_data_x, train_data_m, test_data_x, test_miss_data_x, test_data_m, norm_params_imputation, norm_params_evaluation, column_names
 
 
 ############################################
