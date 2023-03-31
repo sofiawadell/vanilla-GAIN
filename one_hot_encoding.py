@@ -20,7 +20,7 @@ def main(all_datasets, all_missingness, all_extra_amounts):
                 target_col = datasets[dataset]["target"]
 
                 # Concatenate complete datasets
-                filename_train_complete = 'train_test_split_data/train_data/{}_train.csv'.format(dataset)
+                filename_train_complete = 'train_test_split_data/train_data_wo_target_extra_{}/{}_train_full{}_extra_{}.csv'.format(extra_amount, dataset, missingness, extra_amount)
                 train_data_complete = pd.read_csv(filename_train_complete)
 
                 filename_test_complete = 'train_test_split_data/test_data/{}_test.csv'.format(dataset)
@@ -76,6 +76,12 @@ def main(all_datasets, all_missingness, all_extra_amounts):
                 # Remove the original categorical columns from the new dataframe
                 df_full_data_x.drop(cat_cols, axis=1, inplace=True)
                 df_full_data_complete.drop(cat_cols, axis=1, inplace=True)
+                
+                #df_full_data_x.drop("PAY_5_1.0", axis=1, inplace=True)
+                df_full_data_x.drop("PAY_6_1.0", axis=1, inplace=True)
+
+                #df_full_data_complete.drop("PAY_5_1.0", axis=1, inplace=True)
+                df_full_data_complete.drop("PAY_6_1.0", axis=1, inplace=True)
 
                 # Add back the target column
                 #df_full_data_x[target_col] = target_col_full_data_x
@@ -86,8 +92,8 @@ def main(all_datasets, all_missingness, all_extra_amounts):
                 train_data_x, test_data_x = np.vsplit(df_full_data_x, [len(train_data_x)])
 
                 # Save to CSV
-                #filename_train_complete = 'preprocessed_data/one_hot_train_data/one_hot_{}_train.csv'.format(extra_amount, dataset)
-                #train_data_complete.to_csv(filename_train_complete, index=False)
+                filename_train_complete = 'preprocessed_data/one_hot_train_data_wo_target_extra_{}/one_hot_{}_train_full{}_extra_{}.csv'.format(extra_amount, dataset, missingness, extra_amount)
+                train_data_complete.to_csv(filename_train_complete, index=False)
                 #filename_test_complete = 'one_hot_test_data/one_hot_{}_test.csv'.format(dataset)
                 #test_data_complete.to_csv(filename_test_complete, index=False)
 
@@ -103,7 +109,7 @@ def main(all_datasets, all_missingness, all_extra_amounts):
                 print(train_data_complete.shape)
 
 if __name__ == '__main__': 
-    #all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
+    #all_datasets = ["mushroom", "letter", "bank", "news"]
     all_datasets = ["credit"]
     all_missingness = [30]  
     all_extra_amounts = [50, 100]

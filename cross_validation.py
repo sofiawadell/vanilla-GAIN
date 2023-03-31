@@ -16,10 +16,10 @@ Cross-validation to find optimal parameters per dataset and miss_rate
 
 '''
 
-def main(data_name, miss_rate):
+def main(data_name, miss_rate, extra_amount):
   # Load training data and test data
   train_ori_data_x, train_miss_data_x, train_data_m, \
-  _, _, _, norm_params_train, _ = data_loader(data_name, miss_rate) 
+  _, _, _, norm_params_train, _ = data_loader(data_name, miss_rate, extra_amount) 
 
   # Define the range of hyperparameters to search over
   param_grid = {'batch_size': [64, 128, 256],
@@ -94,7 +94,8 @@ def main(data_name, miss_rate):
 
 if __name__ == '__main__':  
     # Set dataset and missrate
-    data_name = "news"
-    miss_rate = 50
+    data_name = "letter"
+    miss_rate = 30
+    extra_amount = 50
 
-    main(data_name, miss_rate)
+    main(data_name, miss_rate, extra_amount)
