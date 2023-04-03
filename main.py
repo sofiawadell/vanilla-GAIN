@@ -100,7 +100,11 @@ def main (args):
   print('Execution time: ' + str(ex_time))
 
   # Save imputed data to csv
-  filename_imputed = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)
+  if extra_amount == 0:
+    filename_imputed = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)
+  else:
+    filename_imputed = 'imputed_data/{}_{}_wo_target_extra_{}.csv'.format(data_name, miss_rate, extra_amount)
+
   df = pd.DataFrame(test_imputed_data, columns=column_names)
   df.to_csv(filename_imputed, index=False)
   
@@ -148,10 +152,10 @@ if __name__ == '__main__':
   
   args = parser.parse_args() 
 
-  # Modify optimal GAIN parameters
+  ## Modify optimal GAIN parameters
   args.data_name = "letter"
   args.miss_rate = 10
-  args.extra_amount = 100
+  args.extra_amount = 0
   args.iterations = 10000
 
   if args.extra_amount == 0:

@@ -94,8 +94,8 @@ def main(data_name, miss_rate, extra_amount):
 
 if __name__ == '__main__':  
     # Set dataset and missrate
-    data_name = "letter"
-    miss_rate = 30
+    data_name = "news"
+    miss_rate = 10
     extra_amount = 50
 
     main(data_name, miss_rate, extra_amount)

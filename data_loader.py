@@ -44,16 +44,16 @@ def data_loader (data_name, miss_rate, extra_amount=0):
   ## Load training data with missingness
   if data_name in datasets.keys():
     file_name = 'preprocessed_data/one_hot_train_data_wo_target/one_hot_'+data_name+'_train_{miss_rate}.csv'.format(miss_rate=str(miss_rate))
-    train_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, usecols=range(0, -1), skip_header=1)
-    _, norm_params_imputation = normalization(train_miss_data_x)
-
     df = pd.read_csv(file_name)
     column_names = df.columns.tolist()
 
     if extra_amount != 0:
       file_name_extra_amount = 'preprocessed_data/one_hot_train_data_wo_target_extra_{}/one_hot_{}_train_{}_extra_{}.csv'.format(extra_amount, data_name, miss_rate, extra_amount)
       train_miss_data_x = np.genfromtxt(file_name_extra_amount, delimiter=",", filling_values=np.nan, usecols=range(0, -1), skip_header=1)
-
+      _, norm_params_imputation = normalization(train_miss_data_x)
+    else: 
+      train_miss_data_x = np.genfromtxt(file_name, delimiter=",", filling_values=np.nan, usecols=range(0, -1), skip_header=1)
+      _, norm_params_imputation = normalization(train_miss_data_x)
   else:
     ValueError("Dataset not found")
 
