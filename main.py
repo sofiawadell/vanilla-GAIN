@@ -153,9 +153,9 @@ if __name__ == '__main__':
   args = parser.parse_args() 
 
   ## Modify optimal GAIN parameters
-  args.data_name = "bank"
+  args.data_name = "news"
   args.miss_rate = 10
-  args.extra_amount = 0
+  args.extra_amount = 50
   args.iterations = 10000
 
   if args.extra_amount == 0:
