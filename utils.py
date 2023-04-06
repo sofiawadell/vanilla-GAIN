@@ -126,7 +126,7 @@ def rounding (imputed_data, data_x):
       
   return rounded_data
 
-def rounding_discrete(imputed_data, data_x, data_name):
+def rounding_categorical(imputed_data, data_x, data_name):
   '''Round imputed data for categorical variables. 
   Ensure to only get one "1" per categorical feature.
   

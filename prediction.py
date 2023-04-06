@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 #all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
 all_datasets = ["news", "letter", "mushroom", "credit", "bank"]
-all_missingness = [10]
+all_missingness = [10, 30, 50]
 
 def linearRegression(X_train, X_test, y_train, y_test):
     # Create a LinearRegression object
@@ -29,7 +29,7 @@ def linearRegression(X_train, X_test, y_train, y_test):
 
     return mse
 
-def kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test):
+def kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test, data_name):
    # Scale the features using StandardScaler
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
@@ -64,7 +64,11 @@ def kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test):
 
     # Evaluate 
     accuracy = accuracy_score(y_test_binary, y_pred_binary)
-    auroc = roc_auc_score(y_test_binary, y_pred_binary)
+
+    if datasets[data_name]["classification"]["class-case"] == "binary":
+        auroc = roc_auc_score(y_test_binary, y_pred_binary)
+    else: 
+        auroc = roc_auc_score(y_test_binary, y_pred_binary, multi_class='ovr')
 
     return accuracy, auroc
 
@@ -87,7 +91,7 @@ def main():
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
                         
             if datasets[data_name]["classification"]["model"] == KNeighborsClassifier:
-                accuracy, auroc = kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test)
+                accuracy, auroc = kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test, data_name)
                 results.append({'dataset': data_name + str(miss_rate), 'scores':{'accuracy': str(accuracy), 'auroc': str(auroc)}})
             elif datasets[data_name]["classification"]["model"] == LinearRegression:
                 mse = linearRegression(X_train, X_test, y_train, y_test)

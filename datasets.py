@@ -58,13 +58,13 @@ datasets: Dict[str, Dict[str, Any]] = {
                 }, 
             "extra_50": {
                 "batch_size": 256,
-                "hint_rate": 45,
-                "alpha": 2
+                "hint_rate": 0.1,
+                "alpha": 10
                 }, 
             "extra_100": {
-                "batch_size": 256,
-                "hint_rate": 45,
-                "alpha": 2
+                "batch_size": 0,
+                "hint_rate": 0,
+                "alpha": 0
                 }, 
             }
         }, 
@@ -105,13 +105,13 @@ datasets: Dict[str, Dict[str, Any]] = {
                 }, 
             "extra_50": {
                 "batch_size": 256,
-                "hint_rate": 45,
-                "alpha": 2
+                "hint_rate": 0.5,
+                "alpha": 10
                 }, 
             "extra_100": {
-                "batch_size": 256,
-                "hint_rate": 45,
-                "alpha": 2
+                "batch_size": 0,
+                "hint_rate": 0,
+                "alpha": 0
                 }, 
             }
         }, 
@@ -165,14 +165,14 @@ datasets: Dict[str, Dict[str, Any]] = {
                 "alpha": 2
                 }, 
             "extra_50": {
-                "batch_size": 256,
-                "hint_rate": 45,
-                "alpha": 2
+                "batch_size": 128,
+                "hint_rate": 0.1,
+                "alpha": 0.5
                 }, 
             "extra_100": {
-                "batch_size": 256,
-                "hint_rate": 45,
-                "alpha": 2
+                "batch_size": 0,
+                "hint_rate": 0,
+                "alpha": 0
                 }, 
             }
         }, 
@@ -241,13 +241,13 @@ datasets: Dict[str, Dict[str, Any]] = {
                 }, 
             "extra_50": {
                 "batch_size": 256,
-                "hint_rate": 45,
-                "alpha": 2
+                "hint_rate": 0.1,
+                "alpha": 0.5
                 }, 
             "extra_100": {
-                "batch_size": 256,
-                "hint_rate": 45,
-                "alpha": 2
+                "batch_size": 0,
+                "hint_rate": 0,
+                "alpha": 0
                 }, 
             }
         }, 
@@ -323,13 +323,13 @@ datasets: Dict[str, Dict[str, Any]] = {
                 }, 
             "extra_50": {
                 "batch_size": 256,
-                "hint_rate": 45,
-                "alpha": 2
+                "hint_rate": 0.1,
+                "alpha": 1
                 }, 
             "extra_100": {
-                "batch_size": 256,
-                "hint_rate": 45,
-                "alpha": 2
+                "batch_size": 0,
+                "hint_rate": 0,
+                "alpha": 0
                 }, 
             }
         }, 

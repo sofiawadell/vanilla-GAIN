@@ -31,7 +31,7 @@ from tqdm import tqdm
 import torch.optim
 import torch.nn.functional as F
 
-from utils import normalization, renormalization, rounding, rounding_discrete
+from utils import normalization, renormalization, rounding_categorical
 from utils import xavier_init
 from utils import binary_sampler, uniform_sampler, sample_batch_index
 from datasets import datasets
@@ -229,7 +229,7 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   imputed_data_test = renormalization(imputed_data_test, norm_params_imputation)  
   
   # Rounding
-  imputed_data_test = rounding_discrete(imputed_data_test, test_data_x, data_name)
+  imputed_data_test = rounding_categorical(imputed_data_test, test_data_x, data_name)
           
   return imputed_data_test
 
