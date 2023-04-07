@@ -319,7 +319,7 @@ def find_average_and_st_dev(values):
     return None, None
   
   average_value = np.mean(values)
-  st_dev = np.mean(values)
+  st_dev = np.std(values)
 
   return average_value, st_dev
 
