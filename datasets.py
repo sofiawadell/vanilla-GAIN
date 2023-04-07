@@ -313,7 +313,7 @@ datasets: Dict[str, Dict[str, Any]] = {
         "cat_cols": {'data_channel': 7, 'weekday': 7, 'is_weekend': 2},
         "classification": {
             "model": LinearRegression,
-            "class-case": "binary"
+            "class-case": "continuous"
             },
         "optimal_parameters": {
             "ordinary_case": {

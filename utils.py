@@ -304,6 +304,36 @@ def pfc(ori_data, imputed_data, data_m, data_name): # No taking into considerati
     pfc = (1 - (N_correct/N_missing))*100 # Number of incorrect / Number total missing
     
     return pfc
+  
+def find_average_and_st_dev(values):
+  '''Finding the average and standard deviation along a vector of values.
+  
+  Args:
+    - values: vector of values
+    
+  Returns:
+    - average_value
+    - st_dev
+  '''
+  if all(x is None for x in values):
+    return None, None
+  
+  average_value = np.mean(values)
+  st_dev = np.mean(values)
+
+  return average_value, st_dev
+
+def round_if_not_none(x):
+    '''Round if not none
+    
+    Args:
+      - x: value
+      
+    Returns:
+      - rounded_value'''
+    if x is not None:
+        return round(x, 4)
+    return None
 
 def xavier_init(size):
   '''Xavier initialization.
