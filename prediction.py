@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 
@@ -10,9 +11,10 @@ from sklearn.linear_model import LinearRegression
 from datasets import datasets
 import matplotlib.pyplot as plt
 
-#all_datasets = ["mushroom", "news", "credit", "letter", "bank"]
-all_datasets = ["news", "letter", "mushroom", "credit", "bank"]
+all_datasets = ["letter", "news", "mushroom", "credit", "bank"]
 all_missingness = [10, 30, 50]
+all_extra_amount = [0]
+#all_extra_amount = [0, 50, 100]
 
 def linearRegression(X_train, X_test, y_train, y_test):
     # Create a LinearRegression object
@@ -64,38 +66,49 @@ def kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test, data_name):
 
     # Evaluate 
     accuracy = accuracy_score(y_test_binary, y_pred_binary)
-
-    if datasets[data_name]["classification"]["class-case"] == "binary":
+    
+    class_case = datasets[data_name]['classification']['class-case']
+    
+    if class_case == 'binary':
         auroc = roc_auc_score(y_test_binary, y_pred_binary)
-    else: 
-        auroc = roc_auc_score(y_test_binary, y_pred_binary, multi_class='ovr')
+    elif class_case == 'multiclass':
+        auroc = roc_auc_score(y_test_binary, y_pred_binary, multi_class='ovr', average='macro')
 
     return accuracy, auroc
 
 def main():
     results = []
 
-    for data_name in all_datasets:
-       for miss_rate in all_missingness:
-            filename_imputed_data = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)
-            imputed_data_wo_target = pd.read_csv(filename_imputed_data)
+    for extra_amount in all_extra_amount:
+        for data_name in all_datasets:
+            for miss_rate in all_missingness:
+                filename_original_data = 'preprocessed_data/one_hot_test_data/one_hot_{}_test.csv'.format(data_name)
+                original_data = pd.read_csv(filename_original_data)
+                
+                if extra_amount == 0:
+                    filename_imputed_data = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)
+                else:
+                    filename_imputed_data = 'imputed_data/{}_{}_wo_target_extra_{}.csv'.format(data_name, miss_rate, extra_amount)
+                
+                # Check if the file exists
+                if not os.path.isfile(filename_imputed_data):
+                    continue
+            
+                imputed_data_wo_target = pd.read_csv(filename_imputed_data)
 
-            filename_original_data = 'preprocessed_data/one_hot_test_data/one_hot_{}_test.csv'.format(data_name)
-            original_data = pd.read_csv(filename_original_data)
+                # Split the data into features (X) and target (y)
+                X = imputed_data_wo_target
+                y = original_data[datasets[data_name]["target"]]
 
-            # Split the data into features (X) and target (y)
-            X = imputed_data_wo_target
-            y = original_data[datasets[data_name]["target"]]
-
-            # Split the data into training and test sets
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-                        
-            if datasets[data_name]["classification"]["model"] == KNeighborsClassifier:
-                accuracy, auroc = kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test, data_name)
-                results.append({'dataset': data_name + str(miss_rate), 'scores':{'accuracy': str(accuracy), 'auroc': str(auroc)}})
-            elif datasets[data_name]["classification"]["model"] == LinearRegression:
-                mse = linearRegression(X_train, X_test, y_train, y_test)
-                results.append({'dataset': data_name + str(miss_rate), 'scores':{'mse': str(mse)}})
+                # Split the data into training and test sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                            
+                if datasets[data_name]['classification']['model'] == KNeighborsClassifier:
+                    accuracy, auroc = kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test, data_name)
+                    results.append({'dataset': data_name + str(miss_rate), 'extra amount': str(extra_amount), 'scores':{'accuracy': str(accuracy), 'auroc': str(auroc)}})
+                elif datasets[data_name]['classification']['model'] == LinearRegression:
+                    mse = linearRegression(X_train, X_test, y_train, y_test)
+                    results.append({'dataset': data_name + str(miss_rate), 'extra amount': str(extra_amount), 'scores':{'mse': str(mse)}})
             
     return results
 
@@ -103,6 +116,7 @@ if __name__ == '__main__':
   results = main()
   for item in results:
     print('Dataset:', item['dataset'])
+    print('Extra amount:', item['extra amount'])
     print('Scores:', item['scores'])
 
 
