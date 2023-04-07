@@ -156,7 +156,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--iterations',
       help='number of training interations',
-      default=100,
+      default=10000,
       type=int)
   parser.add_argument(
       '--number_of_runs',
@@ -170,7 +170,7 @@ if __name__ == '__main__':
   args.data_name = "letter"
   args.miss_rate = 10
   args.extra_amount = 50
-  args.iterations = 10
+  args.iterations = 10000
   args.number_of_runs = 10
 
   if args.extra_amount == 0:
