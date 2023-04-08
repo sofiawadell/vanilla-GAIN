@@ -167,9 +167,9 @@ if __name__ == '__main__':
   args = parser.parse_args() 
 
   ## Modify GAIN parameters
-  args.data_name = "letter"
-  args.miss_rate = 10
-  args.extra_amount = 50
+  args.data_name = "mushroom"
+  args.miss_rate = 50
+  args.extra_amount = 0
   args.iterations = 10000
   args.number_of_runs = 10
 
