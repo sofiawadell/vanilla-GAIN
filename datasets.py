@@ -62,9 +62,9 @@ datasets: Dict[str, Dict[str, Any]] = {
                 "alpha": 10
                 }, 
             "extra_100": {
-                "batch_size": 0,
-                "hint_rate": 0,
-                "alpha": 0
+                "batch_size": 128,
+                "hint_rate": 0.1,
+                "alpha": 10
                 }, 
             }
         }, 
@@ -109,9 +109,9 @@ datasets: Dict[str, Dict[str, Any]] = {
                 "alpha": 10
                 }, 
             "extra_100": {
-                "batch_size": 0,
-                "hint_rate": 0,
-                "alpha": 0
+                "batch_size": 256,
+                "hint_rate": 0.5,
+                "alpha": 10
                 }, 
             }
         }, 
@@ -170,9 +170,9 @@ datasets: Dict[str, Dict[str, Any]] = {
                 "alpha": 0.5
                 }, 
             "extra_100": {
-                "batch_size": 0,
-                "hint_rate": 0,
-                "alpha": 0
+                "batch_size": 64,
+                "hint_rate": 0.1,
+                "alpha": 10
                 }, 
             }
         }, 
@@ -245,9 +245,9 @@ datasets: Dict[str, Dict[str, Any]] = {
                 "alpha": 0.5
                 }, 
             "extra_100": {
-                "batch_size": 0,
-                "hint_rate": 0,
-                "alpha": 0
+                "batch_size": 256,
+                "hint_rate": 0.1,
+                "alpha": 2
                 }, 
             }
         }, 
@@ -327,9 +327,9 @@ datasets: Dict[str, Dict[str, Any]] = {
                 "alpha": 1
                 }, 
             "extra_100": {
-                "batch_size": 0,
-                "hint_rate": 0,
-                "alpha": 0
+                "batch_size": 256,
+                "hint_rate": 0.1,
+                "alpha": 10
                 }, 
             }
         }, 
