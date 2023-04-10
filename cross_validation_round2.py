@@ -17,7 +17,7 @@ Cross-validation round 2 to find optimal parameters per dataset
 
 '''
 
-all_datasets = [ "mushroom", "letter", "bank", "credit"]
+all_datasets = ["mushroom", "letter", "bank", "credit"]
 all_missingness = [10, 30]
 
 def main():
@@ -47,7 +47,7 @@ def main():
 
                 # Load training data and test data
                 train_ori_data_x, train_miss_data_x, train_data_m, \
-                _, _, _, norm_params_imputation, norm_params_evaluation, column_names = data_loader(data_name, miss_rate, 50) 
+                _, _, _, norm_params_imputation, norm_params_evaluation, column_names = data_loader(data_name, miss_rate, 100) 
 
                 for train_index, val_index in kf.split(train_miss_data_x):
                     # Split in train and validation for fold indexes
