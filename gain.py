@@ -96,8 +96,6 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   G_b2 = torch.tensor(np.zeros(shape = [h_dim]), requires_grad=True)
   G_W3 = torch.tensor(xavier_init([h_dim, dim]), requires_grad=True)
   G_b3 = torch.tensor(np.zeros(shape = [dim]), requires_grad=True)
-  #G_W3 = torch.tensor(xavier_init([n_con_cols, n_con_cols]), requires_grad=True)
-  #G_b3 = torch.tensor(np.zeros(shape = [n_con_cols]), requires_grad=True)
   
   theta_G = [G_W1, G_W2, G_W3, G_b1, G_b2, G_b3]
   
@@ -111,7 +109,6 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
     # MinMax normalized output
     G_prob = torch.sigmoid(torch.matmul(G_h2, G_W3) + G_b3)
     return G_prob
-
       
   # Discriminator
   def discriminator(new_x, h):
