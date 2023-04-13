@@ -91,6 +91,15 @@ def main (args):
   
     results.append({'run number': i, 'data': test_imputed_data, 'scores':{'mRMSE': m_rmse, 'RMSE num': rmse_num, 'RMSE cat': rmse_cat, 'PFC': pfc_score, 'Execution time': ex_time}})
 
+  for i, result in enumerate(results):
+    test_imputed_data = result['data']
+    if extra_amount == 0:
+      filename = 'imputed_data/{}/{}_{}_wo_target_{}.csv'.format(data_name, data_name, miss_rate, i)
+    else: 
+      filename = 'imputed_data/{}/{}_{}_wo_target_extra_{}_{}.csv'.format(data_name, data_name, miss_rate, extra_amount, i)
+    df = pd.DataFrame(test_imputed_data, columns=column_names)
+    df.to_csv(filename, index=False)
+  
   best_imputed_data = min(results, key=lambda x: x['scores']['mRMSE'])['data']
   average_m_rmse, st_dev_m_rmse = map(round_if_not_none, find_average_and_st_dev([x['scores']['mRMSE'] for x in results]))
   average_rmse_num, st_dev_rmse_num = map(round_if_not_none, find_average_and_st_dev([x['scores']['RMSE num'] for x in results]))
@@ -101,7 +110,6 @@ def main (args):
   # Print the results
   print()
   print(f"Dataset: {data_name}, Miss_rate: {miss_rate}, Extra CTGAN data amount :{extra_amount}")
-  print()
   print(f"Average mRMSE: {average_m_rmse}, Standard deviation: {st_dev_m_rmse}")
   print(f"Average RMSE num: {average_rmse_num}, Standard deviation: {st_dev_rmse_num}")
   print(f"Average RMSE cat: {average_rmse_cat}, Standard deviation: {st_dev_rmse_cat}")
@@ -109,15 +117,15 @@ def main (args):
   print(f"Average execution time (sec): {average_exec_time}, Standard deviation: {st_dev_exec_time}")
 
   # Save imputed data to csv
-  if extra_amount == 0:
-    filename_imputed = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)
-  else:
-    filename_imputed = 'imputed_data/{}_{}_wo_target_extra_{}.csv'.format(data_name, miss_rate, extra_amount)
+  #if extra_amount == 0:
+    #filename_imputed = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)
+  #else:
+    #filename_imputed = 'imputed_data/{}_{}_wo_target_extra_{}.csv'.format(data_name, miss_rate, extra_amount)
 
-  df = pd.DataFrame(best_imputed_data, columns=column_names)
-  df.to_csv(filename_imputed, index=False)
+  #df = pd.DataFrame(best_imputed_data, columns=column_names)
+  #df.to_csv(filename_imputed, index=False)
   
-  return best_imputed_data, average_m_rmse, average_rmse_num, average_rmse_cat, average_pfc, average_exec_time
+  return best_imputed_data, average_m_rmse, st_dev_m_rmse, average_rmse_num, st_dev_rmse_num, average_rmse_cat, st_dev_rmse_cat, average_pfc, st_dev_pfc, average_exec_time, st_dev_exec_time
 
 if __name__ == '__main__':  
   
@@ -166,28 +174,77 @@ if __name__ == '__main__':
   
   args = parser.parse_args() 
 
-  ## Modify GAIN parameters
-  args.data_name = "news"
-  args.miss_rate = 10
-  args.extra_amount = 100
-  args.iterations = 10000
-  args.number_of_runs = 10
+  all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
+  all_miss_rates = [10, 30, 50]
+  all_extra_amounts = [0, 50, 100]
 
-  if args.extra_amount == 0:
-    case = "ordinary_case"
-  elif args.extra_amount == 50:
-    case = "extra_50"
-  elif args.extra_amount == 100:
-    case = "extra_100"
-  else:
-    ValueError("Extra amount not chosen correctly, chose 0, 50 or 100")
+  df_results = pd.DataFrame(columns=['Dataset', 'Missing%', 'Additional CTGAN data%', 'Average mRMSE',
+                    'St Dev mRMSE', 'Average RMSE num', 'St Dev RMSE num', 'Average RMSE cat', 'St Dev RMSE cat', 
+                    'Average PFC (%)', 'St Dev PFC (%)', 'Average execution time (s)', 'St Dev execution time (s)'])
+  
+  # Start looping through datasets and do imputation
+  for dataset in all_datasets:
+    for miss_rate in all_miss_rates:
+        for extra_amount in all_extra_amounts: 
 
-  args.batch_size = datasets[args.data_name]["optimal_parameters"][case]["batch_size"]
-  args.hint_rate = datasets[args.data_name]["optimal_parameters"][case]["hint_rate"]
-  args.alpha = datasets[args.data_name]["optimal_parameters"][case]["alpha"]
+          if dataset == "news" and miss_rate == 30 and extra_amount !=0:
+            continue
+          if miss_rate == 50 and extra_amount !=0:
+            continue
+          
+          ## Modify GAIN parameters
+          args.data_name = dataset
+          args.miss_rate = miss_rate
+          args.extra_amount = extra_amount
+          args.iterations = 10000
+          args.number_of_runs = 10
 
-  # Calls main function  
-  imputed_data, m_rmse, rmse_num, rmse_cat, pfc, execution_time = main(args)
+          if args.extra_amount == 0:
+            case = "ordinary_case"
+          elif args.extra_amount == 50:
+            case = "extra_50"
+          elif args.extra_amount == 100:
+            case = "extra_100"
+          else:
+            ValueError("Extra amount not chosen correctly, chose 0, 50 or 100")
 
+          args.batch_size = datasets[args.data_name]["optimal_parameters"][case]["batch_size"]
+          args.hint_rate = datasets[args.data_name]["optimal_parameters"][case]["hint_rate"]
+          args.alpha = datasets[args.data_name]["optimal_parameters"][case]["alpha"]
 
+          # Calls main function  
+          best_imputed_data, average_m_rmse, st_dev_m_rmse, average_rmse_num, st_dev_rmse_num, average_rmse_cat, st_dev_rmse_cat, average_pfc, st_dev_pfc, average_exec_time, st_dev_exec_time = main(args)
+          results = {'Dataset': dataset, 'Missing%': miss_rate, 'Additional CTGAN data%': extra_amount, 'Average mRMSE': average_m_rmse,
+                    'St Dev mRMSE': st_dev_m_rmse, 'Average RMSE num': average_rmse_num, 'St Dev RMSE num': st_dev_rmse_num, 'Average RMSE cat': average_rmse_cat, 'St Dev RMSE cat': st_dev_rmse_cat, 
+                    'Average PFC (%)': average_pfc, 'St Dev PFC (%)': st_dev_pfc, 'Average execution time (s)': average_exec_time, 'St Dev execution time (s)': st_dev_exec_time}
+          df_results = df_results.append(results, ignore_index=True)
+  
+  # Save result to csv
+  df_results.to_csv('imputed_data/summary.csv', index=False)
+
+'''
+ORIGINAL CODE
+
+          ## Modify GAIN parameters
+          args.data_name = "letter"
+          args.miss_rate = 50
+          args.extra_amount = 0
+          args.iterations = 10000
+          args.number_of_runs = 1
+
+          if args.extra_amount == 0:
+            case = "ordinary_case"
+          elif args.extra_amount == 50:
+            case = "extra_50"
+          elif args.extra_amount == 100:
+            case = "extra_100"
+          else:
+            ValueError("Extra amount not chosen correctly, chose 0, 50 or 100")
+
+          args.batch_size = datasets[args.data_name]["optimal_parameters"][case]["batch_size"]
+          args.hint_rate = datasets[args.data_name]["optimal_parameters"][case]["hint_rate"]
+          args.alpha = datasets[args.data_name]["optimal_parameters"][case]["alpha"]
+          
+          # Calls main function  
+          imputed_data, m_rmse, rmse_num, rmse_cat, pfc, execution_time = main(args)'''
 

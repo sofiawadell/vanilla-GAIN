@@ -30,6 +30,7 @@ import numpy as np
 from tqdm import tqdm
 import torch.optim
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
 
 from utils import normalization, renormalization, rounding_categorical
 from utils import xavier_init
@@ -166,6 +167,9 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   D_solver = torch.optim.Adam(params=theta_D)
   G_solver = torch.optim.Adam(params=theta_G)
   
+  all_test_loss = []
+  all_train_loss = []
+
   # Start Iterations
   for it in tqdm(range(iterations)):    
       
@@ -198,12 +202,28 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
     G_loss_curr.backward()
     G_solver.step() 
 
+    all_train_loss.append(MSE_train_loss_curr)
+    all_test_loss.append(MSE_test_loss_curr)
+
     # Intermediate Losses
     if it % 10000 == 0:
         print('Iter: {}'.format(it),end='\t')
         print('Train_loss: {:.4}'.format(np.sqrt(MSE_train_loss_curr.item())),end='\t')
         print('Test_loss: {:.4}'.format(np.sqrt(MSE_test_loss_curr.item())))     
   
+  # Plot the train and test loss
+  '''all_train_loss_list = [tensor.detach().numpy() for tensor in all_train_loss]
+  all_test_loss_list = [tensor.detach().numpy() for tensor in all_test_loss]
+  x = np.arange(len(all_train_loss_list))
+
+  plt.plot(x, all_train_loss_list, label="Train loss")
+  plt.plot(x, all_test_loss_list, label="Test loss")
+  plt.xlabel('Iterations')
+  plt.ylabel('Loss')
+  plt.title('GAIN train and test loss for' + data_name)
+  plt.legend()
+  plt.show()'''
+
   ## Return imputed test data     
   Z_mb = uniform_sampler(0, 0.01, test_no, dim) 
   M_mb = test_data_m

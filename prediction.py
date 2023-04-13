@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 all_datasets = ["letter", "news", "mushroom", "credit", "bank"]
 all_missingness = [10, 30, 50]
-all_extra_amount = [0]
+all_extra_amount = [0, 50, 100]
 #all_extra_amount = [0, 50, 100]
 
 def linearRegression(X_train, X_test, y_train, y_test):

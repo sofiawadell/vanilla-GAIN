@@ -55,7 +55,6 @@ def normalization (data, parameters=None):
     min_val = np.zeros(dim)
     max_val = np.zeros(dim)
   
-
     # For each dimension
     for i in range(dim):
       min_val[i] = np.nanmin(norm_data[:,i])
