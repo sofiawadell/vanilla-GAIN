@@ -62,11 +62,16 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   batch_size = gain_parameters['batch_size']
   hint_rate = gain_parameters['hint_rate']
   alpha = gain_parameters['alpha']
-  iterations = gain_parameters['iterations']
+  iterations = gain_parameters['iterations']  
 
   # Other parameters for training data
   no, dim = train_data_x.shape
   test_no, dim = test_data_x.shape
+
+  # Numerical matrix
+  num_cols_len = len(datasets[data_name]['num_cols'])
+  num_cols_mask = np.zeros((batch_size, dim))
+  num_cols_mask[:, :num_cols_len] = 1
   
   # Hidden state dimensions
   h_dim = int(dim)
@@ -146,12 +151,20 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
     # Loss
     M = M.float()
     G_loss_temp = -torch.mean((1-M) * torch.log(D_prob + 1e-8))
-    MSE_train_loss = torch.mean((M * New_X - M * G_sample)**2) / torch.mean(M) # we compute the reconstruction loss, MSE for the known values
 
-    G_loss = G_loss_temp + alpha * MSE_train_loss 
+    # For contionous variables
+    MSE_train_loss = torch.mean((M * New_X - M * G_sample )**2) / torch.mean(M) # we compute the reconstruction loss, MSE for the known values
+    # For binary variables
+    #MSE_train_loss_cat = -torch.mean(M * New_X * (1 - num_cols_mask) * torch.log(G_sample * (1 - num_cols_mask))) / torch.mean(M * (1 - num_cols_mask))
+    
+    #MSE_train_loss = torch.mean(((M * New_X * num_cols_mask - M * G_sample * num_cols_mask)**2) + (-M * New_X * (1 - num_cols_mask) * torch.log(G_sample * (1 - num_cols_mask)))) / torch.mean(M) # we compute the reconstruction loss, MSE for the known values
+    #mean = torch.mean((M * New_X * num_cols_mask - M * G_sample * num_cols_mask)**2)
+    #mean2 = torch.mean(M * num_cols_mask)
+    G_loss = G_loss_temp + alpha * MSE_train_loss
 
     # MSE Performance metric 
     MSE_test_loss = torch.mean(((1-M) * X - (1-M) * G_sample)**2) / torch.mean(1-M)  # we compute imputation loss, MSE for unknown (missing) values
+    
     return G_loss, MSE_train_loss, MSE_test_loss
   
   def test_loss(X, M, New_X):
@@ -224,7 +237,7 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   plt.legend()
   plt.show()'''
 
-  ## Return imputed test data     
+  ## Return imputed test data
   Z_mb = uniform_sampler(0, 0.01, test_no, dim) 
   M_mb = test_data_m
   X_mb = test_norm_data_x          
@@ -248,7 +261,7 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   # Rounding
   imputed_data_test = rounding_categorical(imputed_data_test, test_data_x, data_name)
           
-  return imputed_data_test
+  return imputed_data_test, MSE_final
 
 '''Generator
   def generator_gumbel(new_x, m, tau=1.0):

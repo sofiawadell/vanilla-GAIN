@@ -71,7 +71,7 @@ def main (args):
     start_time = td.time()
 
     # Impute missing data for test data
-    test_imputed_data = gain(train_miss_data, test_miss_data, gain_parameters, data_name, norm_params_imputation)
+    test_imputed_data, MSE_final = gain(train_miss_data, test_miss_data, gain_parameters, data_name, norm_params_imputation)
 
     # End timer
     end_time = td.time()
