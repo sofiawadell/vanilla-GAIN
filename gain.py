@@ -29,12 +29,13 @@ Contact: jsyoon0823@gmail.com
 import numpy as np
 from tqdm import tqdm
 import torch.optim
+import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
-from utils import normalization, renormalization, rounding_categorical
+from utils import normalization, reconstruction_loss_function_test, renormalization, rounding, rounding_categorical
 from utils import xavier_init
-from utils import binary_sampler, uniform_sampler, sample_batch_index
+from utils import binary_sampler, uniform_sampler, sample_batch_index, reconstruction_loss_function_test, reconstruction_loss_function_train
 from datasets import datasets
 
 def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imputation):
@@ -55,13 +56,15 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
     - imputed_data: imputed data
   '''
   # Define mask matrix
-  train_data_m = 1-np.isnan(train_data_x)
+  train_data_m = 1-np.isnan(train_data_x) # 0 is missing value, 1 is existing value
   test_data_m = 1-np.isnan(test_data_x)
   
   # System parameters
   batch_size = gain_parameters['batch_size']
   hint_rate = gain_parameters['hint_rate']
   alpha = gain_parameters['alpha']
+  beta = gain_parameters['beta']
+  tau = gain_parameters['tau'] 
   iterations = gain_parameters['iterations']  
 
   # Other parameters for training data
@@ -70,11 +73,17 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
 
   # Numerical matrix
   num_cols_len = len(datasets[data_name]['num_cols'])
-  num_cols_mask = np.zeros((batch_size, dim))
-  num_cols_mask[:, :num_cols_len] = 1
+  num_cols_mask_full = np.zeros((no, dim))
+  num_cols_mask_full[:, :num_cols_len] = 1
+  num_cols_mask_full = torch.tensor(num_cols_mask_full)
   
+  # Categorical columns
+  cat_cols = datasets[data_name]['cat_cols']
+  cat_cols_len = dim - num_cols_len
+
   # Hidden state dimensions
   h_dim = int(dim)
+  h_dim = dim
 
   # Normalization for all columns and test/training
   train_norm_data_x, _ = normalization(train_data_x, norm_params_imputation)
@@ -93,27 +102,63 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   D_b3 = torch.tensor(np.zeros(shape = [dim]), requires_grad=True)  # Multi-variate outputs
   
   theta_D = [D_W1, D_W2, D_W3, D_b1, D_b2, D_b3]
-  
+
   # Generator variables
-  # Data + Mask as inputs (Random noise is in missing components)
-  G_W1 = torch.tensor(xavier_init([dim*2, h_dim]), requires_grad=True)  
-  G_b1 = torch.tensor(np.zeros(shape = [h_dim]), requires_grad=True)
-  G_W2 = torch.tensor(xavier_init([h_dim, h_dim]), requires_grad=True)
-  G_b2 = torch.tensor(np.zeros(shape = [h_dim]), requires_grad=True)
-  G_W3 = torch.tensor(xavier_init([h_dim, dim]), requires_grad=True)
-  G_b3 = torch.tensor(np.zeros(shape = [dim]), requires_grad=True)
-  
+  G_W1 = torch.tensor(xavier_init([dim*2, h_dim]),requires_grad=True)     
+  G_b1 = torch.tensor(np.zeros(shape = [h_dim]),requires_grad=True)
+  G_W2 =  torch.tensor(xavier_init([h_dim, h_dim]),requires_grad=True)
+  G_b2 = torch.tensor(np.zeros(shape = [h_dim]),requires_grad=True)  
+  G_W3 = torch.tensor(xavier_init([h_dim, h_dim]),requires_grad=True)
+  G_b3 = torch.tensor(np.zeros(shape = [dim]),requires_grad=True)
+
   theta_G = [G_W1, G_W2, G_W3, G_b1, G_b2, G_b3]
   
   ## GAIN functions
   # Generator
-  def generator(new_x,m):
-    # Concatenate Mask and Data
-    inputs = torch.cat(dim = 1, tensors = [new_x, m]) 
+  '''def generator(new_x,m):
+    inputs = torch.cat(dim = 1, tensors = [new_x,m])  # Mask + Data Concatenate
     G_h1 = F.relu(torch.matmul(inputs, G_W1) + G_b1)
     G_h2 = F.relu(torch.matmul(G_h1, G_W2) + G_b2)   
-    # MinMax normalized output
-    G_prob = torch.sigmoid(torch.matmul(G_h2, G_W3) + G_b3)
+    G_prob = torch.sigmoid(torch.matmul(G_h2, G_W3) + G_b3) # [0,1] normalized Output
+    
+    return G_prob'''
+  
+  # Generator
+  def generator(x, m):
+    # Concatenate Mask and Data
+    inputs = torch.cat(dim=1, tensors=[x, m]) 
+    G_h1 = F.relu(torch.matmul(inputs, G_W1) + G_b1)
+    G_h2 = F.relu(torch.matmul(G_h1, G_W2) + G_b2)   
+    G_logits = torch.matmul(G_h2, G_W3) + G_b3
+
+    # Apply numerical activation
+    G_logits_num = G_logits[:, :num_cols_len] 
+    G_prob_numerical = torch.sigmoid(G_logits_num)
+
+    # Categorical columns
+    G_logits_cat = G_logits[:, num_cols_len:]
+
+    ## Loop through each categorical feature apply categorical activation
+    if len(datasets[data_name]['cat_cols']) > 0:
+      variable_sizes = datasets[data_name]['cat_cols'].values()
+    else: 
+      return G_prob_numerical
+    
+    start = 0
+    G_probs_categorical = []
+      
+    for variable_size in variable_sizes:
+        end = start + variable_size
+        G_prob_cat = G_logits_cat[:, start:end]
+        output = F.gumbel_softmax(G_prob_cat, tau=tau)
+        #G_prob_cat = F.softmax(output)
+        G_probs_categorical.append(output)
+        start = end
+    
+    # Concatenate numerical and categorical outputs
+    G_probs_categorical_concatinated = torch.cat(G_probs_categorical, dim=1)
+    G_prob = torch.cat([G_prob_numerical, G_probs_categorical_concatinated], dim=1)
+
     return G_prob
       
   # Discriminator
@@ -150,22 +195,31 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
 
     # Loss
     M = M.float()
-    G_loss_temp = -torch.mean((1-M) * torch.log(D_prob + 1e-8))
+    G_loss_temp = -torch.mean((1-M) * torch.log(D_prob + 1e-8)) / torch.mean((1-M))
 
-    # For contionous variables
-    MSE_train_loss = torch.mean((M * New_X - M * G_sample )**2) / torch.mean(M) # we compute the reconstruction loss, MSE for the known values
-    # For binary variables
-    #MSE_train_loss_cat = -torch.mean(M * New_X * (1 - num_cols_mask) * torch.log(G_sample * (1 - num_cols_mask))) / torch.mean(M * (1 - num_cols_mask))
+    # Numerical cols mask
+    num_cols_mask = num_cols_mask_full[:batch_size, :]
     
-    #MSE_train_loss = torch.mean(((M * New_X * num_cols_mask - M * G_sample * num_cols_mask)**2) + (-M * New_X * (1 - num_cols_mask) * torch.log(G_sample * (1 - num_cols_mask)))) / torch.mean(M) # we compute the reconstruction loss, MSE for the known values
-    #mean = torch.mean((M * New_X * num_cols_mask - M * G_sample * num_cols_mask)**2)
-    #mean2 = torch.mean(M * num_cols_mask)
-    G_loss = G_loss_temp + alpha * MSE_train_loss
+    ## OLD CODE - Train loss
+    #reconstruction_loss = torch.mean((M * New_X - M * G_sample)**2) / torch.mean(M)
 
-    # MSE Performance metric 
-    MSE_test_loss = torch.mean(((1-M) * X - (1-M) * G_sample)**2) / torch.mean(1-M)  # we compute imputation loss, MSE for unknown (missing) values
+    #MSE_train_loss = torch.mean((M * New_X * num_cols_mask - M * G_sample * num_cols_mask)**2) / torch.mean(M)
+    #CROSS_train = -torch.mean(
+    #(1 - num_cols_mask) * New_X * M * torch.log(torch.clamp(G_sample, 1e-8, 1)))
+     #CROSS_train2 = -torch.mean((1 - num_cols_mask) * New_X * M * torch.log(G_sample + 1e-8))
+    #reconstruction_loss = MSE_train_loss + CROSS_train
+
+    MSE_train_loss, CE_train_loss = reconstruction_loss_function_train(data_name, New_X, G_sample, M, num_cols_mask) # we compute the reconstruction loss, MSE for the known values
     
-    return G_loss, MSE_train_loss, MSE_test_loss
+    G_loss = G_loss_temp + alpha * MSE_train_loss + beta * CE_train_loss
+
+    # MSE and CE Performance metric 
+    MSE_test_loss, CE_test_loss = reconstruction_loss_function_test(data_name, X, G_sample, M, num_cols_mask)
+    #MSE_test_loss = torch.mean(((1-M) * X - (1-M) * G_sample)**2) / torch.mean(1-M)  # we compute imputation loss, MSE for unknown (missing) values
+    #MSE_test_loss_num = torch.mean(((1-M) * New_X * num_cols_mask - (1-M) * G_sample * num_cols_mask)**2) / torch.mean((1-M) * num_cols_mask) # we compute the reconstruction loss, MSE for the known values
+    #CE_test_loss = -torch.mean((1-M) * New_X * (1 - num_cols_mask) * torch.log((1-M) * G_sample * (1 - num_cols_mask) + 1e-7))
+
+    return G_loss, MSE_train_loss, CE_train_loss, MSE_test_loss, CE_test_loss
   
   def test_loss(X, M, New_X):
     # Generator
@@ -173,8 +227,14 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
 
     # MSE Performance metric
     M = M.float()
-    MSE_test_loss = torch.mean(((1-M) * X - (1-M)*G_sample)**2) / torch.mean(1-M)
-    return MSE_test_loss, G_sample
+
+    # Numerical cols mask
+    num_cols_mask = num_cols_mask_full[:test_no, :]
+
+    # Test_loss
+    MSE_test_loss, CE_test_loss = reconstruction_loss_function_test(data_name, X, G_sample, M, num_cols_mask)
+
+    return MSE_test_loss, CE_test_loss, G_sample
 
   ## Define optimizers
   D_solver = torch.optim.Adam(params=theta_D)
@@ -182,6 +242,8 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   
   all_test_loss = []
   all_train_loss = []
+  all_d_loss = []
+  all_g_loss = []
 
   # Start Iterations
   for it in tqdm(range(iterations)):    
@@ -211,12 +273,15 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
     
     # Optimize G
     G_solver.zero_grad()
-    G_loss_curr, MSE_train_loss_curr, MSE_test_loss_curr = generator_loss(X=X_mb, M=M_mb, New_X=New_X_mb, H=H_mb)
+    G_loss_curr, MSE_train_loss_curr, CE_train_loss_curr, MSE_test_loss_curr, CE_test_loss_curr, = generator_loss(X=X_mb, M=M_mb, New_X=New_X_mb, H=H_mb)
     G_loss_curr.backward()
     G_solver.step() 
 
     all_train_loss.append(MSE_train_loss_curr)
     all_test_loss.append(MSE_test_loss_curr)
+
+    all_d_loss.append(D_loss)
+    all_g_loss.append(G_loss_curr)
 
     # Intermediate Losses
     if it % 10000 == 0:
@@ -224,16 +289,18 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
         print('Train_loss: {:.4}'.format(np.sqrt(MSE_train_loss_curr.item())),end='\t')
         print('Test_loss: {:.4}'.format(np.sqrt(MSE_test_loss_curr.item())))     
   
-  # Plot the train and test loss
+  # Plot the losses
   '''all_train_loss_list = [tensor.detach().numpy() for tensor in all_train_loss]
   all_test_loss_list = [tensor.detach().numpy() for tensor in all_test_loss]
-  x = np.arange(len(all_train_loss_list))
+  all_d_loss_list = [tensor.detach().numpy() for tensor in all_d_loss]
+  all_g_loss_list = [tensor.detach().numpy() for tensor in all_g_loss]
+  x = np.arange(len(all_d_loss_list))
 
-  plt.plot(x, all_train_loss_list, label="Train loss")
-  plt.plot(x, all_test_loss_list, label="Test loss")
+  plt.plot(x, all_d_loss_list, label="D loss")
+  plt.plot(x, all_g_loss_list, label="G loss")
   plt.xlabel('Iterations')
   plt.ylabel('Loss')
-  plt.title('GAIN train and test loss for' + data_name)
+  plt.title('GAIN d and g loss for ' + data_name)
   plt.legend()
   plt.show()'''
 
@@ -247,7 +314,7 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   M_mb = torch.tensor(M_mb)
   New_X_mb = torch.tensor(New_X_mb)
       
-  MSE_final, Sample = test_loss(X=X_mb, M=M_mb, New_X=New_X_mb)
+  MSE_final, CE_final, Sample = test_loss(X=X_mb, M=M_mb, New_X=New_X_mb)
   
   imputed_data_test = M_mb * X_mb + (1-M_mb) * Sample
 
@@ -261,7 +328,7 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   # Rounding
   imputed_data_test = rounding_categorical(imputed_data_test, test_data_x, data_name)
           
-  return imputed_data_test, MSE_final
+  return imputed_data_test, MSE_final, CE_final
 
 '''Generator
   def generator_gumbel(new_x, m, tau=1.0):

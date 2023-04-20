@@ -48,11 +48,14 @@ def cross_validation_GAIN(data_name, miss_rate, extra_amount):
     # Load training data and test data
     train_ori_data_x, train_miss_data_x, train_data_m, \
     _, _, _, norm_params_imputation, norm_params_evaluation, _ = data_loader(data_name, miss_rate, extra_amount) 
-
+    #'batch_size': [64, 128, 256],
+                  #'hint_rate': [0.1, 0.5, 0.9],
     # Define the range of hyperparameters to search over
-    param_grid = {'batch_size': [64, 128, 256],
-                  'hint_rate': [0.1, 0.5, 0.9],
-                  'alpha': [0.1, 0.5, 1, 2, 10],
+    param_grid = {'batch_size': [256],
+                  'hint_rate': [0.9],
+                  'alpha': [0.1, 0.5, 1, 2, 10, 50, 100],
+                  'beta': [0.1, 0.5],
+                  'tau': [0.1, 0.5, 1, 2, 5],
                   'iterations': [5000]}
     param_combinations = product(*param_grid.values())
 
@@ -74,7 +77,7 @@ def cross_validation_GAIN(data_name, miss_rate, extra_amount):
           train_x, val_x = train_miss_data_x[train_index], train_miss_data_x[val_index]
 
           # Perform gain imputation
-          imputed_data_val, MSE_final = gain(train_x, val_x, param_dict, data_name, norm_params_imputation)
+          imputed_data_val, MSE_final, CE_final = gain(train_x, val_x, param_dict, data_name, norm_params_imputation)
           all_mse.append(MSE_final.detach().numpy())
 
         # Calculate the mean MSE across all folds for this param combination
@@ -101,6 +104,10 @@ if __name__ == '__main__':
     all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
     all_missingness = [10, 30, 50]
     all_extra_amount = [0, 50, 100]
+
+    all_datasets = ["credit"]
+    all_miss_rates = [10]
+    all_extra_amounts = [0]
 
     main(all_datasets, all_missingness, all_extra_amount)
 

@@ -41,7 +41,7 @@ def main (args):
     - hint_rate: hint rate
     - alpha: hyperparameter
     - iterations: iterations
-    - extra_amount = extra amount CTGAN training data
+    - extra_amount: extra amount CTGAN training data
     - number_of_runs: number of runs to perform
     
   Returns:
@@ -57,7 +57,9 @@ def main (args):
   gain_parameters = {'batch_size': args.batch_size,
                      'hint_rate': args.hint_rate,
                      'alpha': args.alpha,
-                     'iterations': args.iterations}
+                     'iterations': args.iterations,
+                     'beta': args.beta,
+                     'tau': args.tau}
   
   results = []
   
@@ -71,7 +73,7 @@ def main (args):
     start_time = td.time()
 
     # Impute missing data for test data
-    test_imputed_data, MSE_final = gain(train_miss_data, test_miss_data, gain_parameters, data_name, norm_params_imputation)
+    test_imputed_data, MSE_final, CE_final = gain(train_miss_data, test_miss_data, gain_parameters, data_name, norm_params_imputation)
 
     # End timer
     end_time = td.time()
@@ -162,6 +164,16 @@ if __name__ == '__main__':
       default=2,
       type=float)
   parser.add_argument(
+      '--beta',
+      help='hyperparameter weight',
+      default=0.5,
+      type=float)
+  parser.add_argument(
+      '--tau',
+      help='gumbel-softmax hyperparameter',
+      default=1,
+      type=float)
+  parser.add_argument(
       '--iterations',
       help='number of training interations',
       default=10000,
@@ -177,6 +189,10 @@ if __name__ == '__main__':
   all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
   all_miss_rates = [10, 30, 50]
   all_extra_amounts = [0, 50, 100]
+
+  all_datasets = ["letter", "mushroom", "bank", "credit", "news"]
+  all_miss_rates = [10]
+  all_extra_amounts = [0]
 
   df_results = pd.DataFrame(columns=['Dataset', 'Missing%', 'Additional CTGAN data%', 'Average mRMSE',
                     'St Dev mRMSE', 'Average RMSE num', 'St Dev RMSE num', 'Average RMSE cat', 'St Dev RMSE cat', 
@@ -196,8 +212,8 @@ if __name__ == '__main__':
           args.data_name = dataset
           args.miss_rate = miss_rate
           args.extra_amount = extra_amount
-          args.iterations = 1
-          args.number_of_runs = 10
+          args.iterations = 10000
+          args.number_of_runs = 1
 
           if args.extra_amount == 0:
             case = "ordinary_case"
@@ -212,6 +228,12 @@ if __name__ == '__main__':
           args.hint_rate = datasets[args.data_name]["optimal_parameters"][case]["hint_rate"]
           args.alpha = datasets[args.data_name]["optimal_parameters"][case]["alpha"]
 
+          #args.batch_size = 256
+          #args.hint_rate = 0.9
+          args.alpha = 10
+          args.beta = 0.1
+          args.tau = 0.5
+
           # Calls main function  
           best_imputed_data, average_m_rmse, st_dev_m_rmse, average_rmse_num, st_dev_rmse_num, average_rmse_cat, st_dev_rmse_cat, average_pfc, st_dev_pfc, average_exec_time, st_dev_exec_time = main(args)
           results = {'Dataset': dataset, 'Missing%': miss_rate, 'Additional CTGAN data%': extra_amount, 'Average mRMSE': average_m_rmse,
@@ -220,7 +242,7 @@ if __name__ == '__main__':
           df_results = df_results.append(results, ignore_index=True)
   
   # Save result to csv
-  df_results.to_csv('imputed_data/summary.csv', index=False)
+  #df_results.to_csv('imputed_data/summary.csv', index=False)
 
 '''
 ORIGINAL CODE

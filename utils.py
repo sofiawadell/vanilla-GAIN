@@ -29,10 +29,89 @@ from datasets import datasets
 
 # Necessary packages
 import numpy as np
-#import tensorflow as tf
-##IF USING TF 2 use following import to still use TF < 2.0 Functionalities
-#import tensorflow._api.v2.compat.v1 as tf
-#tf.disable_v2_behavior()
+import torch.nn.functional as F
+import torch.optim
+
+
+def reconstruction_loss_function_test(data_name, X, G_sample, M, num_cols_mask):
+  '''Reconstruction loss function for test.
+  
+  Args:
+    - data_name: data name
+    - X: original data
+    - G_sample: generated sample
+    - M: data mask
+    - num_cols_mask = numerical columns mask
+  
+  Returns:
+    - MSE_loss: mean squared error loss
+    - CE_loss: cross-entropy loss
+  '''  
+  MSE_loss = F.mse_loss((1-M) * X * num_cols_mask, (1-M) * G_sample * num_cols_mask, reduction="mean") / torch.mean((1-M) * num_cols_mask)
+
+  if torch.isnan(MSE_loss).any():
+    MSE_loss = torch.full((1, 1), float('nan'))
+
+  CE_loss = 0
+
+  masked_X = (1-M) * X * (1 - num_cols_mask)
+  masked_G_sample = (1-M) * G_sample * (1 - num_cols_mask)
+
+  ## Loop through each categorical feature and compute CE loss
+  if len(datasets[data_name]['cat_cols']) == 0:
+    CE_loss = torch.full((1, 1), float('nan'))
+  else: 
+    variable_sizes = datasets[data_name]['cat_cols'].values()
+    start = len(datasets[data_name]['num_cols'])
+      
+    for variable_size in variable_sizes:
+        end = start + variable_size
+        batch_G_sample = masked_G_sample[:, start:end]
+        batch_X = torch.argmax(masked_X[:, start:end], dim=1)
+        CE_loss += F.cross_entropy(batch_G_sample, batch_X, reduction="mean")
+        start = end
+  
+  return MSE_loss, CE_loss
+
+def reconstruction_loss_function_train(data_name, New_X, G_sample, M, num_cols_mask):
+  '''Reconstruction loss function for train.
+  
+  Args:
+    - data_name: data name
+    - New_X: original data combined with random sample
+    - G_sample: generated sample
+    - M: data mask
+    - num_cols_mask = numerical columns mask
+  
+  Returns:
+    - MSE_loss: mean squared error loss
+    - CE_loss: cross-entropy loss
+  '''  
+  MSE_loss = F.mse_loss(M * New_X * num_cols_mask, M * G_sample * num_cols_mask, reduction="mean") / torch.mean(M * num_cols_mask) # same result as original code
+  
+  if torch.isnan(MSE_loss).any():
+    MSE_loss = torch.full((1, 1), float('nan'))
+
+  CE_loss = 0
+  
+  masked_New_X = M * New_X * (1 - num_cols_mask)
+  masked_G_sample = M * G_sample * (1 - num_cols_mask)
+
+  ## Loop through each categorical feature and compute CE loss
+  if len(datasets[data_name]['cat_cols']) == 0:
+    CE_loss = torch.full((1, 1), float('nan'))
+  else: 
+    variable_sizes = datasets[data_name]['cat_cols'].values()
+    start = len(datasets[data_name]['num_cols'])
+      
+    for variable_size in variable_sizes:
+        end = start + variable_size
+        batch_G_sample = masked_G_sample[:, start:end]
+        batch_New_X = torch.argmax(masked_New_X[:, start:end], dim=1)
+        CE_loss += F.cross_entropy(batch_G_sample, batch_New_X, reduction="mean")
+        start = end
+  
+  return MSE_loss, CE_loss
 
 def normalization (data, parameters=None):
   '''Normalize data in [0, 1] range.
