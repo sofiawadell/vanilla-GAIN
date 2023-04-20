@@ -212,7 +212,7 @@ if __name__ == '__main__':
           args.data_name = dataset
           args.miss_rate = miss_rate
           args.extra_amount = extra_amount
-          args.iterations = 10000
+          args.iterations = 1
           args.number_of_runs = 1
 
           if args.extra_amount == 0:

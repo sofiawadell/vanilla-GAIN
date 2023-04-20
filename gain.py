@@ -295,6 +295,7 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   all_d_loss_list = [tensor.detach().numpy() for tensor in all_d_loss]
   all_g_loss_list = [tensor.detach().numpy() for tensor in all_g_loss]
   x = np.arange(len(all_d_loss_list))
+  #x = x[:, np.newaxis, np.newaxis].shape
 
   plt.plot(x, all_d_loss_list, label="D loss")
   plt.plot(x, all_g_loss_list, label="G loss")
