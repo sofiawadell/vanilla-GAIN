@@ -63,8 +63,6 @@ def gain_v1(train_data_x, test_data_x, gain_parameters, data_name, norm_params_i
   batch_size = gain_parameters['batch_size']
   hint_rate = gain_parameters['hint_rate']
   alpha = gain_parameters['alpha']
-  beta = gain_parameters['beta']
-  tau = gain_parameters['tau'] 
   iterations = gain_parameters['iterations']  
 
   # Other parameters for training data
