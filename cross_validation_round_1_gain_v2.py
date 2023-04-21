@@ -48,8 +48,9 @@ def main(all_datasets, all_missingness, all_extra_amount):
               df_results = pd.DataFrame([results], columns=['Dataset', 'Missing%', 'Additional CTGAN data%', 'Batch-size',
                     'Hint-rate', 'Alpha', 'Beta', 'Tau', 'AUROC', 'MSE'])
               df_all_results = pd.concat([df_all_results, df_results], ignore_index=True)
-    
-    df_all_results.to_csv('results/optimal_hyperparameters_GAIN_round_1.csv', index=False)
+              
+    filename = 'results/optimal_hyperparameters_GAIN_round_1_gain_v2_{}.csv'.format('_'.join(all_datasets))
+    df_all_results.to_csv(filename, index=False)
 
 
 def cross_validation_GAIN(data_name, miss_rate, extra_amount):
