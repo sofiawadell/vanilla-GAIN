@@ -1,0 +1,3 @@
+Dataset,Missing%,Additional CTGAN data%,Batch-size,Hint-rate,Alpha,Beta,Tau,AUROC,MSE
+news,10,0,256,0.9,10,0.1,0.1,-,231705862.7295066
+mushroom,10,0,256,0.9,10,0.1,0.1,0.9908706307023097,-

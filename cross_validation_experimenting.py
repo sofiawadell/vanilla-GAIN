@@ -7,7 +7,7 @@ from data_loader import data_loader
 from datasets import datasets
 
 from sklearn.model_selection import KFold
-from gain import gain
+from gain_v1 import gain
 from utils import rmse_num_loss, rmse_cat_loss, m_rmse_loss
 
 '''

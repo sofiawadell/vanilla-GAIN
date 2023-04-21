@@ -38,7 +38,7 @@ from utils import xavier_init
 from utils import binary_sampler, uniform_sampler, sample_batch_index, reconstruction_loss_function_test, reconstruction_loss_function_train
 from datasets import datasets
 
-def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imputation):
+def gain_v2(train_data_x, test_data_x, gain_parameters, data_name, norm_params_imputation):
   '''Impute missing values in test_data_x
   
   Args:
@@ -114,15 +114,6 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   theta_G = [G_W1, G_W2, G_W3, G_b1, G_b2, G_b3]
   
   ## GAIN functions
-  # Generator
-  '''def generator(new_x,m):
-    inputs = torch.cat(dim = 1, tensors = [new_x,m])  # Mask + Data Concatenate
-    G_h1 = F.relu(torch.matmul(inputs, G_W1) + G_b1)
-    G_h2 = F.relu(torch.matmul(G_h1, G_W2) + G_b2)   
-    G_prob = torch.sigmoid(torch.matmul(G_h2, G_W3) + G_b3) # [0,1] normalized Output
-    
-    return G_prob'''
-  
   # Generator
   def generator(x, m):
     # Concatenate Mask and Data
@@ -200,41 +191,26 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
     # Numerical cols mask
     num_cols_mask = num_cols_mask_full[:batch_size, :]
     
-    ## OLD CODE - Train loss
-    #reconstruction_loss = torch.mean((M * New_X - M * G_sample)**2) / torch.mean(M)
-
-    #MSE_train_loss = torch.mean((M * New_X * num_cols_mask - M * G_sample * num_cols_mask)**2) / torch.mean(M)
-    #CROSS_train = -torch.mean(
-    #(1 - num_cols_mask) * New_X * M * torch.log(torch.clamp(G_sample, 1e-8, 1)))
-     #CROSS_train2 = -torch.mean((1 - num_cols_mask) * New_X * M * torch.log(G_sample + 1e-8))
-    #reconstruction_loss = MSE_train_loss + CROSS_train
-
+    # Train loss
     MSE_train_loss, CE_train_loss = reconstruction_loss_function_train(data_name, New_X, G_sample, M, num_cols_mask) # we compute the reconstruction loss, MSE for the known values
-    
     G_loss = G_loss_temp + alpha * MSE_train_loss + beta * CE_train_loss
 
     # MSE and CE Performance metric 
     MSE_test_loss, CE_test_loss = reconstruction_loss_function_test(data_name, X, G_sample, M, num_cols_mask)
-    #MSE_test_loss = torch.mean(((1-M) * X - (1-M) * G_sample)**2) / torch.mean(1-M)  # we compute imputation loss, MSE for unknown (missing) values
-    #MSE_test_loss_num = torch.mean(((1-M) * New_X * num_cols_mask - (1-M) * G_sample * num_cols_mask)**2) / torch.mean((1-M) * num_cols_mask) # we compute the reconstruction loss, MSE for the known values
-    #CE_test_loss = -torch.mean((1-M) * New_X * (1 - num_cols_mask) * torch.log((1-M) * G_sample * (1 - num_cols_mask) + 1e-7))
 
     return G_loss, MSE_train_loss, CE_train_loss, MSE_test_loss, CE_test_loss
   
   def test_loss(X, M, New_X):
     # Generator
-    G_sample = generator(New_X, M)
-
-    # MSE Performance metric
-    M = M.float()
+    G_sample = generator(New_X,M)
 
     # Numerical cols mask
     num_cols_mask = num_cols_mask_full[:test_no, :]
 
-    # Test_loss
+    # MSE and CE Performance metric 
     MSE_test_loss, CE_test_loss = reconstruction_loss_function_test(data_name, X, G_sample, M, num_cols_mask)
-
-    return MSE_test_loss, CE_test_loss, G_sample
+    
+    return G_sample, MSE_test_loss, CE_test_loss
 
   ## Define optimizers
   D_solver = torch.optim.Adam(params=theta_D)
@@ -273,7 +249,7 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
     
     # Optimize G
     G_solver.zero_grad()
-    G_loss_curr, MSE_train_loss_curr, CE_train_loss_curr, MSE_test_loss_curr, CE_test_loss_curr, = generator_loss(X=X_mb, M=M_mb, New_X=New_X_mb, H=H_mb)
+    G_loss_curr, MSE_train_loss_curr, CE_train_loss_curr, MSE_test_loss_curr, CE_test_loss_curr = generator_loss(X=X_mb, M=M_mb, New_X=New_X_mb, H=H_mb)
     G_loss_curr.backward()
     G_solver.step() 
 
@@ -295,7 +271,6 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   all_d_loss_list = [tensor.detach().numpy() for tensor in all_d_loss]
   all_g_loss_list = [tensor.detach().numpy() for tensor in all_g_loss]
   x = np.arange(len(all_d_loss_list))
-  #x = x[:, np.newaxis, np.newaxis].shape
 
   plt.plot(x, all_d_loss_list, label="D loss")
   plt.plot(x, all_g_loss_list, label="G loss")
@@ -315,9 +290,9 @@ def gain (train_data_x, test_data_x, gain_parameters, data_name, norm_params_imp
   M_mb = torch.tensor(M_mb)
   New_X_mb = torch.tensor(New_X_mb)
       
-  MSE_final, CE_final, Sample = test_loss(X=X_mb, M=M_mb, New_X=New_X_mb)
-  
-  imputed_data_test = M_mb * X_mb + (1-M_mb) * Sample
+  G_sample, MSE_final, CE_final = test_loss(X=X_mb, M=M_mb, New_X=New_X_mb)
+
+  imputed_data_test = M_mb * X_mb + (1-M_mb) * G_sample
 
   # Convert to Numpy array
   imputed_data_test = imputed_data_test.detach()

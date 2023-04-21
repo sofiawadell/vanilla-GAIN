@@ -27,7 +27,8 @@ import time as td
 from sklearn.preprocessing import OneHotEncoder
 
 from data_loader import data_loader
-from gain import gain
+from gain_v1 import gain_v1
+from gain_v2 import gain_v2
 from utils import rmse_num_loss, rmse_cat_loss, pfc, m_rmse_loss, find_average_and_st_dev, round_if_not_none
 from datasets import datasets
 
@@ -40,6 +41,8 @@ def main (args):
     - batch:size: batch size
     - hint_rate: hint rate
     - alpha: hyperparameter
+    - beta: hyperparameter
+    - tau: Gumbel Softmax temperature
     - iterations: iterations
     - extra_amount: extra amount CTGAN training data
     - number_of_runs: number of runs to perform
@@ -73,7 +76,8 @@ def main (args):
     start_time = td.time()
 
     # Impute missing data for test data
-    test_imputed_data, MSE_final, CE_final = gain(train_miss_data, test_miss_data, gain_parameters, data_name, norm_params_imputation)
+    #test_imputed_data, MSE_final = gain_v1(train_miss_data, test_miss_data, gain_parameters, data_name, norm_params_imputation)
+    test_imputed_data, MSE_final, CE_final = gain_v2(train_miss_data, test_miss_data, gain_parameters, data_name, norm_params_imputation)
 
     # End timer
     end_time = td.time()
@@ -100,7 +104,7 @@ def main (args):
     else: 
       filename = 'imputed_data/{}/{}_{}_wo_target_extra_{}_{}.csv'.format(data_name, data_name, miss_rate, extra_amount, i)
     df = pd.DataFrame(test_imputed_data, columns=column_names)
-    df.to_csv(filename, index=False)
+    #df.to_csv(filename, index=False)
   
   best_imputed_data = min(results, key=lambda x: x['scores']['mRMSE'])['data']
   average_m_rmse, st_dev_m_rmse = map(round_if_not_none, find_average_and_st_dev([x['scores']['mRMSE'] for x in results]))
@@ -190,8 +194,8 @@ if __name__ == '__main__':
   all_miss_rates = [10, 30, 50]
   all_extra_amounts = [0, 50, 100]
 
-  all_datasets = ["letter", "mushroom", "bank", "credit", "news"]
-  all_miss_rates = [10]
+  all_datasets = ["mushroom"]
+  all_miss_rates = [30]
   all_extra_amounts = [0]
 
   df_results = pd.DataFrame(columns=['Dataset', 'Missing%', 'Additional CTGAN data%', 'Average mRMSE',
@@ -212,7 +216,7 @@ if __name__ == '__main__':
           args.data_name = dataset
           args.miss_rate = miss_rate
           args.extra_amount = extra_amount
-          args.iterations = 1
+          args.iterations = 3000
           args.number_of_runs = 1
 
           if args.extra_amount == 0:
@@ -228,10 +232,10 @@ if __name__ == '__main__':
           args.hint_rate = datasets[args.data_name]["optimal_parameters"][case]["hint_rate"]
           args.alpha = datasets[args.data_name]["optimal_parameters"][case]["alpha"]
 
-          #args.batch_size = 256
-          #args.hint_rate = 0.9
-          args.alpha = 10
-          args.beta = 0.1
+          args.batch_size = 256
+          args.hint_rate = 0.1
+          args.alpha = 100
+          args.beta = 0.7
           args.tau = 0.5
 
           # Calls main function  

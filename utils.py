@@ -50,17 +50,17 @@ def reconstruction_loss_function_test(data_name, X, G_sample, M, num_cols_mask):
   MSE_loss = F.mse_loss((1-M) * X * num_cols_mask, (1-M) * G_sample * num_cols_mask, reduction="mean") / torch.mean((1-M) * num_cols_mask)
 
   if torch.isnan(MSE_loss).any():
-    MSE_loss = torch.full((1, 1), float('nan'))
-
-  CE_loss = 0
+    MSE_loss = torch.tensor(0.0, dtype=torch.float)
 
   masked_X = (1-M) * X * (1 - num_cols_mask)
   masked_G_sample = (1-M) * G_sample * (1 - num_cols_mask)
 
   ## Loop through each categorical feature and compute CE loss
   if len(datasets[data_name]['cat_cols']) == 0:
-    CE_loss = torch.full((1, 1), float('nan'))
+    CE_loss = torch.tensor(0.0, dtype=torch.float)
+
   else: 
+    CE_loss = 0
     variable_sizes = datasets[data_name]['cat_cols'].values()
     start = len(datasets[data_name]['num_cols'])
       
@@ -90,17 +90,16 @@ def reconstruction_loss_function_train(data_name, New_X, G_sample, M, num_cols_m
   MSE_loss = F.mse_loss(M * New_X * num_cols_mask, M * G_sample * num_cols_mask, reduction="mean") / torch.mean(M * num_cols_mask) # same result as original code
   
   if torch.isnan(MSE_loss).any():
-    MSE_loss = torch.full((1, 1), float('nan'))
-
-  CE_loss = 0
+    MSE_loss = torch.tensor(0.0, dtype=torch.float)
   
   masked_New_X = M * New_X * (1 - num_cols_mask)
   masked_G_sample = M * G_sample * (1 - num_cols_mask)
 
   ## Loop through each categorical feature and compute CE loss
   if len(datasets[data_name]['cat_cols']) == 0:
-    CE_loss = torch.full((1, 1), float('nan'))
+    CE_loss = torch.tensor(0.0, dtype=torch.float)
   else: 
+    CE_loss = 0
     variable_sizes = datasets[data_name]['cat_cols'].values()
     start = len(datasets[data_name]['num_cols'])
       
