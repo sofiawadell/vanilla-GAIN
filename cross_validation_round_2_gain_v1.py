@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.metrics import make_scorer
 from sklearn.neighbors import KNeighborsClassifier
 from data_loader import data_loader
+import time as td
 from datasets import datasets
 from gain_v2 import gain_v2
 from parameter_options import parameter_options
@@ -149,6 +150,8 @@ def cross_validation_round_two(df, data_name, extra_amount, iterations):
     return best_params, best_params_score
 
 if __name__ == '__main__':  
+    start_time = td.time()
+
     # Set dataset and missrate
     all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
     all_missingness = [10, 30, 50]
@@ -156,6 +159,12 @@ if __name__ == '__main__':
     iterations = 3000
 
     main(all_datasets,  all_extra_amount, iterations)
+
+    end_time = td.time()
+
+    ex_time_h = (end_time - start_time)/60
+
+    print(ex_time_h)
 
 
 '''OLD CODE

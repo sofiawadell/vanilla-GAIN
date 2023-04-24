@@ -7,6 +7,7 @@ from sklearn.model_selection import KFold, train_test_split
 
 import numpy as np
 import pandas as pd
+import time as td
 from data_loader import data_loader
 from datasets import datasets
 
@@ -25,7 +26,7 @@ Optimization is done based on prediction, depending on prediction model.
 
 def main(all_datasets, all_missingness, all_extra_amount):
     df_all_results = pd.DataFrame(columns=['Dataset', 'Missing%', 'Additional CTGAN data%', 'Batch-size',
-                    'Hint-rate', 'Alpha', 'AUROC', 'MSE'])
+                    'Hint-rate', 'Alpha', 'AUROC', 'MSE', 'Execution time (s)'])
    
     # Loop through all data sets, miss ratios and extra CTGAN amount
     for dataset in all_datasets:
@@ -37,16 +38,16 @@ def main(all_datasets, all_missingness, all_extra_amount):
                 if not os.path.isfile(file_name):
                   continue
               
-              best_params, best_params_score = cross_validation_GAIN(dataset, miss_rate, extra_amount)
+              best_params, best_params_score, ex_time = cross_validation_GAIN(dataset, miss_rate, extra_amount)
               if dataset == "news":
                 results = {'Dataset': dataset, 'Missing%': miss_rate, 'Additional CTGAN data%': extra_amount, 'Batch-size': best_params['batch_size'],
-                      'Hint-rate': best_params['hint_rate'], 'Alpha': best_params['alpha'], 'AUROC': "-", 'MSE': best_params_score}
+                      'Hint-rate': best_params['hint_rate'], 'Alpha': best_params['alpha'], 'AUROC': "-", 'MSE': best_params_score, 'Execution time (s)': ex_time}
               else: 
                 results = {'Dataset': dataset, 'Missing%': miss_rate, 'Additional CTGAN data%': extra_amount, 'Batch-size': best_params['batch_size'],
-                      'Hint-rate': best_params['hint_rate'], 'Alpha': best_params['alpha'],'AUROC': best_params_score, 'MSE': "-"}
+                      'Hint-rate': best_params['hint_rate'], 'Alpha': best_params['alpha'],'AUROC': best_params_score, 'MSE': "-", 'Execution time (s)': ex_time}
                 
               df_results = pd.DataFrame([results], columns=['Dataset', 'Missing%', 'Additional CTGAN data%', 'Batch-size',
-                    'Hint-rate', 'Alpha', 'AUROC', 'MSE'])
+                    'Hint-rate', 'Alpha', 'AUROC', 'MSE', 'Execution time (s)'])
               df_all_results = pd.concat([df_all_results, df_results], ignore_index=True)
     
     filename = 'results/optimal_hyperparameters_GAIN_round_1_gain_v1_{}.csv'.format('_'.join(all_datasets))
@@ -54,7 +55,9 @@ def main(all_datasets, all_missingness, all_extra_amount):
 
 
 def cross_validation_GAIN(data_name, miss_rate, extra_amount):
+    
     print(f'Dataset: {data_name}, Miss rate: {miss_rate}, Extra amount: {extra_amount}')
+    start_time = td.time()
 
     # Load training data and test data
     train_ori_data_x, train_miss_data_x, train_data_m, \
@@ -62,8 +65,8 @@ def cross_validation_GAIN(data_name, miss_rate, extra_amount):
 
     # Define the range of hyperparameters to search over
     param_grid = {'batch_size': [64, 128, 256],
-                  'hint_rate': [0.1, 0.5, 0.9],
-                  'alpha': [0.1, 0.5, 1, 2, 10, 50, 100],
+                  'hint_rate': [0.1, 0.5],
+                  'alpha': [0.5, 1, 10],
                   'iterations': [3000]}
     param_combinations = product(*param_grid.values())
 
@@ -135,17 +138,22 @@ def cross_validation_GAIN(data_name, miss_rate, extra_amount):
       best_params = min(results, key=lambda x: x['MSE'])['params']
       matching_result = next((result for result in results if result['params'] == best_params), None)
       best_params_score = matching_result['MSE']
+    
+    end_time = td.time()
+    ex_time = end_time - start_time
+    ex_time_hours = ex_time / (60*60)
+    print(f'Execution time (hours): {ex_time_hours}')
 
-    return best_params, best_params_score
+    return best_params, best_params_score, ex_time
 
 if __name__ == '__main__':  
-    
-    # Set dataset and missrate
-    all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
-    all_missingness = [10, 30, 50]
-    all_extra_amounts = [0, 50, 100]
 
-    all_datasets = ["mushroom"]
+    # Set dataset and missrate
+    #all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
+    #all_missingness = [10, 30, 50]
+    #all_extra_amounts = [0, 50, 100]
+
+    all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
     all_missingness = [10, 30, 50]
     all_extra_amounts = [0]
 

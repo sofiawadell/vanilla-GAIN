@@ -29,7 +29,7 @@ from sklearn.preprocessing import OneHotEncoder
 from data_loader import data_loader
 from gain_v1 import gain_v1
 from gain_v2 import gain_v2
-from utils import rmse_num_loss, rmse_cat_loss, pfc, m_rmse_loss, find_average_and_st_dev, round_if_not_none
+from utils import get_hyperparameters, rmse_num_loss, rmse_cat_loss, pfc, m_rmse_loss, find_average_and_st_dev, round_if_not_none
 from datasets import datasets
 
 def main (args):
@@ -194,10 +194,6 @@ if __name__ == '__main__':
   all_miss_rates = [10, 30, 50]
   all_extra_amounts = [0, 50, 100]
 
-  all_datasets = ["mushroom"]
-  all_miss_rates = [30]
-  all_extra_amounts = [0]
-
   df_results = pd.DataFrame(columns=['Dataset', 'Missing%', 'Additional CTGAN data%', 'Average mRMSE',
                     'St Dev mRMSE', 'Average RMSE num', 'St Dev RMSE num', 'Average RMSE cat', 'St Dev RMSE cat', 
                     'Average PFC (%)', 'St Dev PFC (%)', 'Average execution time (s)', 'St Dev execution time (s)'])
@@ -216,8 +212,8 @@ if __name__ == '__main__':
           args.data_name = dataset
           args.miss_rate = miss_rate
           args.extra_amount = extra_amount
-          args.iterations = 3000
-          args.number_of_runs = 1
+          args.iterations = 10000
+          args.number_of_runs = 10
 
           if args.extra_amount == 0:
             case = "ordinary_case"
@@ -228,13 +224,11 @@ if __name__ == '__main__':
           else:
             ValueError("Extra amount not chosen correctly, chose 0, 50 or 100")
 
-          args.batch_size = datasets[args.data_name]["optimal_parameters"][case]["batch_size"]
-          args.hint_rate = datasets[args.data_name]["optimal_parameters"][case]["hint_rate"]
-          args.alpha = datasets[args.data_name]["optimal_parameters"][case]["alpha"]
+          args.batch_size, args.hint_rate, args.alpha = get_hyperparameters(dataset, miss_rate, extra_amount)
 
-          args.batch_size = 256
-          args.hint_rate = 0.1
-          args.alpha = 100
+          #args.batch_size = 256
+          #args.hint_rate = 0.1
+          #args.alpha = 100
           args.beta = 0.7
           args.tau = 0.5
 
