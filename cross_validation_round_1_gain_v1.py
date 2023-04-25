@@ -50,7 +50,7 @@ def main(all_datasets, all_missingness, all_extra_amount):
                     'Hint-rate', 'Alpha', 'AUROC', 'MSE', 'Execution time (s)'])
               df_all_results = pd.concat([df_all_results, df_results], ignore_index=True)
     
-    filename = 'results/optimal_hyperparameters_GAIN_round_1_gain_v1_{}.csv'.format('_'.join(all_datasets))
+    filename = 'results/optimal_hyperparameters_GAIN_gain_v1.csv'
     df_all_results.to_csv(filename, index=False)
 
 
@@ -65,8 +65,8 @@ def cross_validation_GAIN(data_name, miss_rate, extra_amount):
 
     # Define the range of hyperparameters to search over
     param_grid = {'batch_size': [64, 128, 256],
-                  'hint_rate': [0.1, 0.5],
-                  'alpha': [0.5, 1, 10],
+                  'hint_rate': [0.1, 0.5, 0.9],
+                  'alpha': [0.5, 1, 2, 10],
                   'iterations': [3000]}
     param_combinations = product(*param_grid.values())
 

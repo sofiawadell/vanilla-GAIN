@@ -38,7 +38,7 @@ def main (args):
   Args:
     - data_name: data name
     - miss_rate: probability of missing components
-    - batch:size: batch size
+    - batch_size: batch size
     - hint_rate: hint rate
     - alpha: hyperparameter
     - beta: hyperparameter

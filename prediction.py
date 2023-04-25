@@ -32,7 +32,7 @@ def linearRegression(X_train, X_test, y_train, y_test):
     return mse
 
 def kNeighborsClassifier(X, y, X_train, X_test, y_train, y_test, data_name):
-   # Scale the features using StandardScaler
+    # Scale the features using StandardScaler
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)

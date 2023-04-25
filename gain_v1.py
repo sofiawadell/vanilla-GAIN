@@ -74,10 +74,6 @@ def gain_v1(train_data_x, test_data_x, gain_parameters, data_name, norm_params_i
   num_cols_mask_full = np.zeros((no, dim))
   num_cols_mask_full[:, :num_cols_len] = 1
   num_cols_mask_full = torch.tensor(num_cols_mask_full)
-  
-  # Categorical columns
-  cat_cols = datasets[data_name]['cat_cols']
-  cat_cols_len = dim - num_cols_len
 
   # Hidden state dimensions
   h_dim = int(dim)
@@ -115,7 +111,6 @@ def gain_v1(train_data_x, test_data_x, gain_parameters, data_name, norm_params_i
   # Generator
   def generator(new_x,m):
     inputs = torch.cat(dim = 1, tensors = [new_x,m])  # Mask + Data Concatenate
-
     G_h1 = F.relu(torch.matmul(inputs, G_W1) + G_b1)
     G_h2 = F.relu(torch.matmul(G_h1, G_W2) + G_b2)   
     G_prob = torch.sigmoid(torch.matmul(G_h2, G_W3) + G_b3) # [0,1] normalized Output
@@ -266,7 +261,7 @@ def gain_v1(train_data_x, test_data_x, gain_parameters, data_name, norm_params_i
   imputed_data_test = renormalization(imputed_data_test, norm_params_imputation)  
   
   # Rounding
-  imputed_data_test = rounding_categorical(imputed_data_test, test_data_x, data_name)
+  imputed_data_test = rounding(imputed_data_test, test_data_x)
           
   return imputed_data_test, MSE_final
 
