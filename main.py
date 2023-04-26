@@ -122,7 +122,7 @@ def main (args):
   print(f"Average PFC (%): {average_pfc}, Standard deviation: {st_dev_pfc}")
   print(f"Average execution time (sec): {average_exec_time}, Standard deviation: {st_dev_exec_time}")
 
-  # Save imputed data to csv
+  # Save only best imputed data to csv
   #if extra_amount == 0:
     #filename_imputed = 'imputed_data/{}_{}_wo_target.csv'.format(data_name, miss_rate)
   #else:
@@ -194,6 +194,9 @@ if __name__ == '__main__':
   all_miss_rates = [10, 30, 50]
   all_extra_amounts = [0, 50, 100]
 
+  all_datasets = ["mushroom"]
+  all_extra_amounts = [0]
+
   df_results = pd.DataFrame(columns=['Dataset', 'Missing%', 'Additional CTGAN data%', 'Average mRMSE',
                     'St Dev mRMSE', 'Average RMSE num', 'St Dev RMSE num', 'Average RMSE cat', 'St Dev RMSE cat', 
                     'Average PFC (%)', 'St Dev PFC (%)', 'Average execution time (s)', 'St Dev execution time (s)'])
@@ -212,8 +215,8 @@ if __name__ == '__main__':
           args.data_name = dataset
           args.miss_rate = miss_rate
           args.extra_amount = extra_amount
-          args.iterations = 10000
-          args.number_of_runs = 10
+          args.iterations = 3000
+          args.number_of_runs = 1
 
           if args.extra_amount == 0:
             case = "ordinary_case"
@@ -234,6 +237,7 @@ if __name__ == '__main__':
 
           # Calls main function  
           best_imputed_data, average_m_rmse, st_dev_m_rmse, average_rmse_num, st_dev_rmse_num, average_rmse_cat, st_dev_rmse_cat, average_pfc, st_dev_pfc, average_exec_time, st_dev_exec_time = main(args)
+          
           results = {'Dataset': dataset, 'Missing%': miss_rate, 'Additional CTGAN data%': extra_amount, 'Average mRMSE': average_m_rmse,
                     'St Dev mRMSE': st_dev_m_rmse, 'Average RMSE num': average_rmse_num, 'St Dev RMSE num': st_dev_rmse_num, 'Average RMSE cat': average_rmse_cat, 'St Dev RMSE cat': st_dev_rmse_cat, 
                     'Average PFC (%)': average_pfc, 'St Dev PFC (%)': st_dev_pfc, 'Average execution time (s)': average_exec_time, 'St Dev execution time (s)': st_dev_exec_time}

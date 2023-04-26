@@ -80,25 +80,14 @@ def reconstruction_loss_function_test(data_name, X, G_sample, M, num_cols_mask):
   if torch.isnan(MSE_loss).any():
     MSE_loss = torch.tensor(0.0, dtype=torch.float)
 
-  masked_X = (1-M) * X * (1 - num_cols_mask)
-  masked_G_sample = (1-M) * G_sample * (1 - num_cols_mask)
-
   ## Loop through each categorical feature and compute CE loss
   if len(datasets[data_name]['cat_cols']) == 0:
     CE_loss = torch.tensor(0.0, dtype=torch.float)
-
   else: 
-    CE_loss = 0
-    variable_sizes = datasets[data_name]['cat_cols'].values()
-    start = len(datasets[data_name]['num_cols'])
-      
-    for variable_size in variable_sizes:
-        end = start + variable_size
-        batch_G_sample = masked_G_sample[:, start:end]
-        batch_X = torch.argmax(masked_X[:, start:end], dim=1)
-        CE_loss += F.cross_entropy(batch_G_sample, batch_X, reduction="mean")
-        start = end
-  
+    CE_loss = -torch.mean(
+    (1 - num_cols_mask) * X * (1 - M) * torch.log(torch.clamp(G_sample, min=1e-8, max=1)) +
+    (1 - X) * (1 - num_cols_mask) * (1 - M) * torch.log(torch.clamp(1 - G_sample, min=1e-8, max=1)))
+
   return MSE_loss, CE_loss
 
 def reconstruction_loss_function_train(data_name, New_X, G_sample, M, num_cols_mask):
@@ -119,24 +108,28 @@ def reconstruction_loss_function_train(data_name, New_X, G_sample, M, num_cols_m
   
   if torch.isnan(MSE_loss).any():
     MSE_loss = torch.tensor(0.0, dtype=torch.float)
-  
-  masked_New_X = M * New_X * (1 - num_cols_mask)
-  masked_G_sample = M * G_sample * (1 - num_cols_mask)
+
+  #masked_G_sample = M * G_sample
+  #masked_New_X = M * New_X
 
   ## Loop through each categorical feature and compute CE loss
   if len(datasets[data_name]['cat_cols']) == 0:
     CE_loss = torch.tensor(0.0, dtype=torch.float)
   else: 
-    CE_loss = 0
+    CE_loss = -torch.mean(
+    (1 - num_cols_mask) * New_X * M * torch.log(torch.clamp(G_sample, min=1e-8, max=1)) +
+    (1 - New_X) * (1 - num_cols_mask) * M * torch.log(torch.clamp(1 - G_sample, min=1e-8, max=1)))
+
+    '''CE_loss = 0
     variable_sizes = datasets[data_name]['cat_cols'].values()
     start = len(datasets[data_name]['num_cols'])
       
     for variable_size in variable_sizes:
         end = start + variable_size
         batch_G_sample = masked_G_sample[:, start:end]
-        batch_New_X = torch.argmax(masked_New_X[:, start:end], dim=1)
-        CE_loss += F.cross_entropy(batch_G_sample, batch_New_X, reduction="mean")
-        start = end
+        batch_X = torch.argmax(masked_New_X[:, start:end], dim=1)
+        CE_loss += F.cross_entropy(batch_G_sample, batch_X, reduction="mean")
+        start = end'''
   
   return MSE_loss, CE_loss
 
@@ -592,3 +585,5 @@ Renormalize data from [0, 1] range to the original range.
     renorm_data[:,i] = renorm_data[:,i] + min_val[i]
     
   return renorm_data'''
+
+

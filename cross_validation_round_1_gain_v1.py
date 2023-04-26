@@ -153,7 +153,7 @@ if __name__ == '__main__':
     #all_missingness = [10, 30, 50]
     #all_extra_amounts = [0, 50, 100]
 
-    all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
+    all_datasets = ["letter"]
     all_missingness = [10, 30, 50]
     all_extra_amounts = [0]
 
