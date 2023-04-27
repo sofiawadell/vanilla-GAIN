@@ -50,7 +50,7 @@ def main(all_datasets, all_missingness, all_extra_amount):
                     'Hint-rate', 'Alpha', 'AUROC', 'MSE', 'Execution time (s)'])
               df_all_results = pd.concat([df_all_results, df_results], ignore_index=True)
     
-    filename = 'results/optimal_hyperparameters_GAIN_gain_v1.csv'
+    filename = 'results/optimal_hyperparameters_GAIN_gain_v1_credit.csv'
     df_all_results.to_csv(filename, index=False)
 
 
@@ -67,7 +67,7 @@ def cross_validation_GAIN(data_name, miss_rate, extra_amount):
     param_grid = {'batch_size': [64, 128, 256],
                   'hint_rate': [0.1, 0.5, 0.9],
                   'alpha': [0.5, 1, 2, 10],
-                  'iterations': [3000]}
+                  'iterations': [3]}
     param_combinations = product(*param_grid.values())
 
     # Define number of cross-folds
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     #all_missingness = [10, 30, 50]
     #all_extra_amounts = [0, 50, 100]
 
-    all_datasets = ["letter"]
+    all_datasets = ["credit"]
     all_missingness = [10, 30, 50]
     all_extra_amounts = [0]
 
