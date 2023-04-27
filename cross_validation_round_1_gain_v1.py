@@ -20,7 +20,7 @@ from prediction import linearRegression, kNeighborsClassifier
 Description: 
 
 Cross-validation to find optimal parameters per dataset and miss_rate and extra amount. 
-Optimization is done based on prediction, depending on prediction model. 
+Optimization is done based on prediction, and depending on prediction model. 
 
 '''
 
