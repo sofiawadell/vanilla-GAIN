@@ -1,4 +1,0 @@
-Dataset,Missing%,Additional CTGAN data%,Batch-size,Hint-rate,Alpha,AUROC,MSE,Execution time (s)
-letter,10,0,256,0.9,2,0.8998837960209856,-,2812.391602039337
-letter,30,0,64,0.1,2,0.785017155994931,-,3027.4353351593018
-letter,50,0,64,0.1,10,0.672570634052692,-,6981.271498918533
