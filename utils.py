@@ -491,99 +491,238 @@ def sample_batch_index(total, batch_size):
   return batch_idx
   
 
-  
-############## ORIGINAL RMSE CODE ##############################
-'''def rmse_loss (ori_data, imputed_data, data_m):
-  Compute RMSE loss between ori_data and imputed_data
-  
-  Args:
-    - ori_data: original data without missing values
-    - imputed_data: imputed data
-    - data_m: indicator matrix for missingness
+def readDataSeparateCsvBothImputationAndPrediction():
+    filenames = ["results/Results - Imputation without CTGAN.csv", "results/Results - Imputation with CTGAN.csv"]
+    imputation_data_frames = []
+    for filename in filenames:
+        df = pd.read_csv(filename, header=None, thousands=',').drop(0)
+        df = df.replace(',', '', regex=True)
+        df.iloc[0] = df.iloc[0].ffill()
+        df.iloc[:,0] = df.iloc[:,0].ffill()
+        df.iloc[0,0] = "Dataset"
+        df.iloc[0,1] = "Missing %"
+        df = df.replace('-', 0)
+        df.columns = pd.MultiIndex.from_arrays(df[:2].values)
+        df = df[2:]
+        imputation_data_frames.append(df)
+
+    # locate the row "100% increased data"
+    idx = 10
+
+    # split the DataFrame at the located row
+    imputation_df_ctgan50 = imputation_data_frames[1].iloc[1:idx].reset_index(drop=True)
+    imputation_df_ctgan100 = imputation_data_frames[1].iloc[idx+1:].reset_index(drop=True)
+
+    filenames = ["results/Results - Prediction without CTGAN.csv", "results/Results - Prediction with CTGAN.csv"]
+    prediction_data_frames = []
+    for filename in filenames:
+        df = pd.read_csv(filename, header=None, thousands=',').drop(0)
+        df = df.replace(',', '', regex=True)
+        df.iloc[0] = df.iloc[0].ffill()
+        df.iloc[:,0] = df.iloc[:,0].ffill()
+        df.iloc[0,0] = "Dataset"
+        df.iloc[0,1] = "Missing %"
+        df = df.replace('-', 0)
+        df.columns = pd.MultiIndex.from_arrays(df[:2].values)
+        df = df[2:]
+        prediction_data_frames.append(df)
+
+    # locate the row "100% increased data"
+    idx = 10
+
+    # split the DataFrame at the located row
+    prediction_df_ctgan50 = prediction_data_frames[1].iloc[1:idx].reset_index(drop=True)
+    prediction_df_ctgan100 = prediction_data_frames[1].iloc[idx+1:].reset_index(drop=True)
+
+    return imputation_data_frames[0], imputation_df_ctgan50, imputation_df_ctgan100, prediction_data_frames[0], prediction_df_ctgan50, prediction_df_ctgan100
+
+def readDataSummary(args):
+    if args.evaluation_type == "Prediction":
+      filename = "results/Results - Prediction summary.csv"
+    else:
+      filename = "results/Results - Imputation summary.csv"
+    df = pd.read_csv(filename, header=None, thousands=',').drop(0)
+    df = df.replace(',', '', regex=True)
+    df.iloc[0] = df.iloc[0].ffill()
+    df.iloc[:,0] = df.iloc[:,0].ffill()
+    df.iloc[:,1] = df.iloc[:,1].ffill()
+    df.iloc[0,0] = "Dataset"
+    df.iloc[0,1] = "Missing %"
+    df.iloc[0,2] = "Additional CTGAN data%"
+    df = df.replace('-', 0)
+    df.columns = pd.MultiIndex.from_arrays(df[:2].values)
+    df = df[2:]
+    #df.iloc[:, 1:] = df.iloc[:, 1:].apply(pd.to_numeric, errors='coerce')
+
+    return df
+
+def readDataSeparateCsv(args):
+    # read the CSV files and drop the first row
+    if args.evaluation_type == "Prediction":
+      filenames = ["results/Results - Prediction without CTGAN.csv", "results/Results - Prediction with CTGAN.csv"]
+    else:
+      filenames = ["results/Results - Imputation without CTGAN.csv", "results/Results - Imputation with CTGAN.csv"]
+    data_frames = []
+    for filename in filenames:
+        df = pd.read_csv(filename, header=None, thousands=',').drop(0)
+        df = df.replace(',', '', regex=True)
+        df.iloc[0] = df.iloc[0].ffill()
+        df.iloc[:,0] = df.iloc[:,0].ffill()
+        df.iloc[0,0] = "Dataset"
+        df.iloc[0,1] = "Missing %"
+        df = df.replace('-', 0)
+        df.columns = pd.MultiIndex.from_arrays(df[:2].values)
+        df = df[2:]
+        data_frames.append(df)
+
+    # locate the row "100% increased data"
+    idx = 10
+
+    # split the DataFrame at the located row
+    df_ctgan50 = data_frames[1].iloc[1:idx].reset_index(drop=True)
+    df_ctgan100 = data_frames[1].iloc[idx+1:].reset_index(drop=True)
+
+    return data_frames[0], df_ctgan50, df_ctgan100
+
+def find_best_value(value1, value2, evaluation):
+    if evaluation == "Accuracy" or evaluation == "AUROC": # Max value is better
+        if value1 == value2:
+            return 3 # It is a tie
+        elif value1 > value2:
+            return 1
+        else:
+            return 2
+    else:  # Min value is better
+        if value1 == value2:
+            return 3 # It is a tie
+        elif value1 < value2:
+            return 1
+        else:
+            return 2
     
-  Returns:
-    - rmse: Root Mean Squared Error
-  
-  ori_data, norm_parameters = normalization(ori_data)
-  imputed_data, _ = normalization(imputed_data, norm_parameters)
+def find_evaluation_type(evaluation_type, imputation_evaluation, prediction_evaluation):
+    if evaluation_type == "Prediction":
+       return prediction_evaluation
+    elif evaluation_type == "Imputation":
+       return imputation_evaluation
     
-  # Only for missing values
-  nominator = np.sum(((1-data_m) * ori_data - (1-data_m) * imputed_data)**2)
-  denominator = np.sum(1-data_m)
-  
-  rmse = np.sqrt(nominator/float(denominator))
-  
-  return rmse
+    return None
 
-############## ORIGINAL NORMALIZATION CODE ##############################
+def find_no_training_samples(ctgan_option, dataset):
+    if dataset == "mushroom":
+        no_training = 6499
+        if ctgan_option == "CTGAN 50%": 
+            return no_training + no_training/2
+        elif ctgan_option == "CTGAN 100%":
+            return no_training + no_training
+        else:
+            return no_training  
+    elif dataset == "letter":
+        no_training = 16000
+        if ctgan_option == "CTGAN 50%": 
+            return no_training + no_training/2
+        elif ctgan_option == "CTGAN 100%":
+            return no_training + no_training
+        else:
+            return no_training  
+    elif dataset == "bank":
+        no_training = 32950
+        if ctgan_option == "CTGAN 50%": 
+            return no_training + no_training/2
+        elif ctgan_option == "CTGAN 100%":
+            return no_training + no_training
+        else:
+            return no_training  
+    elif dataset == "credit":
+        no_training = 24000
 
-  def normalization (data, parameters=None):
-  Normalize data in [0, 1] range.
-  
-  Args:
-    - data: original data
-  
-  Returns:
-    - norm_data: normalized data
-    - norm_parameters: min_val, max_val for each feature for renormalization
-  
+        if ctgan_option == "CTGAN 50%": 
+            return no_training + no_training/2
+        elif ctgan_option == "CTGAN 100%":
+            return no_training + no_training
+        else:
+            return no_training
+    elif dataset == "news":
+        no_training = 31715
+        if ctgan_option == "CTGAN 50%": 
+            return no_training + no_training/2
+        elif ctgan_option == "CTGAN 100%":
+            return no_training + no_training
+        else:
+            return no_training    
+        
+def get_filtered_values(df, dataset=None, miss_rate=None, extra_amount=None, imputation_method=None, evaluation=None):
+    if dataset:
+        df = df.loc[df.iloc[:, 0].str.lower() == dataset]
+    if miss_rate:
+        df = df.loc[df.iloc[:, 1].astype(str) == str(miss_rate)]
+    if extra_amount==50 or extra_amount==100 or extra_amount==0:
+        df = df.loc[df.iloc[:, 2].astype(str) == str(extra_amount)]
+    if imputation_method:
+        df = df.loc[:, df.columns.get_level_values(0) == imputation_method]
+    if evaluation:
+        df = df.loc[:, df.columns.get_level_values(1) == evaluation]
 
-  # Parameters
-  _, dim = data.shape
-  norm_data = data.copy()
-  
-  if parameters is None:
-  
-    # MixMax normalization
-    min_val = np.zeros(dim)
-    max_val = np.zeros(dim)
+    return df     
+
+def get_filtered_values_separateCsv(df, dataset=None, miss_rate=None, imputation_method=None, evaluation=None):
+    if dataset:
+        df = df.loc[df.iloc[:, 0].str.lower() == dataset]
+    if miss_rate:
+        df = df.loc[df.iloc[:, 1].astype(str) == str(miss_rate)]
+    if imputation_method:
+        df = df.loc[:, df.columns.get_level_values(0) == imputation_method]
+    if evaluation:
+        df = df.loc[:, df.columns.get_level_values(1) == evaluation]
+
+    values = df.values.flatten().astype(float)
+    return values
+
+def find_miss_rates(dataset_values):
+    """
+    Find miss rates for the current dataset_values
+    """
+    if len(dataset_values) == 3:
+      miss_rates = [10, 30, 50] 
+    elif len(dataset_values) == 2:
+      miss_rates = [10, 30]
+    else:
+      miss_rates = [10]
+
+    return miss_rates
+
+def collect_handles_and_labels(bars, x_axis_options):
+      handles, labels = [], []
+      for j, bar in enumerate(bars):
+          handles.append(bar)
+          labels.append(x_axis_options[j])
+      return handles, labels
+
+def is_vector_all_zeros(arr):
+    """
+    Checks if a vector only contains zeros.
     
-    # For each dimension
-    for i in range(dim):
-      min_val[i] = np.nanmin(norm_data[:,i])
-      norm_data[:,i] = norm_data[:,i] - np.nanmin(norm_data[:,i])
-      max_val[i] = np.nanmax(norm_data[:,i])
-      norm_data[:,i] = norm_data[:,i] / (np.nanmax(norm_data[:,i]) + 1e-6)   
-      
-    # Return norm_parameters for renormalization
-    norm_parameters = {'min_val': min_val,
-                       'max_val': max_val}
+    Returns:
+    True if the vector only contains zeros, False otherwise
+    """
+    for elem in arr:
+        if elem != 0:
+            return False
+    return True
 
-  else:
-    min_val = parameters['min_val']
-    max_val = parameters['max_val']
+def is_matrix_all_zeros(values):
+    """
+    Checks if a matrix only contains zeros.
     
-    # For each dimension
-    for i in range(dim):
-      norm_data[:,i] = norm_data[:,i] - min_val[i]
-      norm_data[:,i] = norm_data[:,i] / (max_val[i] + 1e-6)  
-      
-    norm_parameters = parameters    
-      
-  return norm_data, norm_parameters
-
-
-def renormalization (norm_data, norm_parameters):
-Renormalize data from [0, 1] range to the original range.
-  
-  Args:
-    - norm_data: normalized data
-    - norm_parameters: min_val, max_val for each feature for renormalization
-  
-  Returns:
-    - renorm_data: renormalized original data
-  
-  
-  min_val = norm_parameters['min_val']
-  max_val = norm_parameters['max_val']
-
-  _, dim = norm_data.shape
-  renorm_data = norm_data.copy()
+    Args:
+    values: A 2D list representing the matrix
     
-  for i in range(dim):
-    renorm_data[:,i] = renorm_data[:,i] * (max_val[i] + 1e-6)   
-    renorm_data[:,i] = renorm_data[:,i] + min_val[i]
-    
-  return renorm_data'''
-
+    Returns:
+    True if the matrix only contains zeros, False otherwise
+    """
+    for row in values:
+        for val in row:
+            if float(val) != 0:
+                return False
+    return True
 

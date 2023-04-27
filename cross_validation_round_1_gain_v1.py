@@ -20,7 +20,7 @@ from prediction import linearRegression, kNeighborsClassifier
 Description: 
 
 Cross-validation to find optimal parameters per dataset and miss_rate and extra amount. 
-Optimization is done based on prediction, depending on prediction model. 
+Optimization is done based on prediction, and depending on prediction model. 
 
 '''
 
@@ -50,7 +50,7 @@ def main(all_datasets, all_missingness, all_extra_amount):
                     'Hint-rate', 'Alpha', 'AUROC', 'MSE', 'Execution time (s)'])
               df_all_results = pd.concat([df_all_results, df_results], ignore_index=True)
     
-    filename = 'results/optimal_hyperparameters_GAIN_gain_v1_credit.csv'
+    filename = 'results/optimal_hyperparameters_GAIN_gain_v1.csv'
     df_all_results.to_csv(filename, index=False)
 
 
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     #all_missingness = [10, 30, 50]
     #all_extra_amounts = [0, 50, 100]
 
-    all_datasets = ["credit"]
+    all_datasets = ["letter"]
     all_missingness = [10, 30, 50]
     all_extra_amounts = [0]
 
