@@ -153,7 +153,7 @@ if __name__ == '__main__':
     
     # Set dataset and missrate
     all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
-    all_datasets = ["credit"]
+    all_datasets = ["news"]
     all_missingness = [10, 30, 50]
     all_extra_amounts = [0]   # only applicable to 0% extra CTGAN data
 
