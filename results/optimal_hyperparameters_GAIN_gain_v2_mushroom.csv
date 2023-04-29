@@ -1,0 +1,3 @@
+Dataset,Missing%,Additional CTGAN data%,Batch-size,Hint-rate,Alpha,Beta,Tau,AUROC,MSE,Execution time (s)
+mushroom,30,0,256,0.1,2.0,50,1,0.9970622302460868,-,20661.043493032455
+mushroom,50,0,256,0.1,10.0,1,5,0.9780569936824403,-,32789.069016218185

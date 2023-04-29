@@ -49,7 +49,7 @@ def main(all_datasets, all_missingness, all_extra_amount):
               df_results = pd.DataFrame([results], columns=['Dataset', 'Missing%', 'Additional CTGAN data%', 'Batch-size',
                     'Hint-rate', 'Alpha', 'Beta', 'Tau', 'AUROC', 'MSE', 'Execution time (s)'])
               df_all_results = pd.concat([df_all_results, df_results], ignore_index=True)
-    filename = 'results/optimal_hyperparameters_GAIN_round_1_gain_v2_{}.csv'.format('_'.join(all_datasets))
+    filename = 'results/optimal_hyperparameters_GAIN_gain_v2_{}.csv'.format('_'.join(all_datasets))
     df_all_results.to_csv(filename, index=False)
 
 
@@ -153,6 +153,7 @@ if __name__ == '__main__':
     
     # Set dataset and missrate
     all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
+    all_datasets = ["credit"]
     all_missingness = [10, 30, 50]
     all_extra_amounts = [0]   # only applicable to 0% extra CTGAN data
 

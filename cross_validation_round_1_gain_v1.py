@@ -67,7 +67,7 @@ def cross_validation_GAIN(data_name, miss_rate, extra_amount):
     param_grid = {'batch_size': [64, 128, 256],
                   'hint_rate': [0.1, 0.5, 0.9],
                   'alpha': [0.5, 1, 2, 10],
-                  'iterations': [3]}
+                  'iterations': [3000]}
     param_combinations = product(*param_grid.values())
 
     # Define number of cross-folds

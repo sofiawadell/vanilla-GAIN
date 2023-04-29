@@ -47,7 +47,7 @@ def get_hyperparameters(dataset, miss_rate, extra_amount):
     - Alpha: hyperparameter
   '''  
     # Read dataframe
-    filename = 'results/optimal_hyperparameters_GAIN_round_1_gain_v1.csv'
+    filename = 'results/optimal_hyperparameters_GAIN_gain_v1.csv'
     df = pd.read_csv(filename)
 
     # Filter dataframe
