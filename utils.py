@@ -33,7 +33,36 @@ import pandas as pd
 import torch.nn.functional as F
 import torch.optim
 
-def get_hyperparameters(dataset, miss_rate, extra_amount):
+def get_hyperparameters_v2(dataset, miss_rate):
+    '''Get optimized hyperparameters per dataset and miss_rate for GAIN v2.
+  
+  Args:
+    - dataset: data name
+    - extra_amount: extra amount CTGAN data %
+    - miss_rate: missing%
+  
+  Returns:
+    - Batch-size: hyperparameter
+    - Hint-rate: hyperparameter
+    - Alpha: hyperparameter
+  '''  
+    # Read dataframe
+    filename = 'results/optimal_hyperparameters_GAIN_gain_v2.csv'
+    df = pd.read_csv(filename)
+
+    # Filter dataframe
+    df_filtered = df.loc[(df['Dataset'] == dataset) & (df['Missing%'] == miss_rate)]
+
+    # Extract values
+    batch_size = df_filtered.at[df_filtered.index[0], 'Batch-size']
+    hint_rate = df_filtered.at[df_filtered.index[0], 'Hint-rate']
+    alpha = df_filtered.at[df_filtered.index[0], 'Alpha']
+    beta = df_filtered.at[df_filtered.index[0], 'Beta']
+    tau = df_filtered.at[df_filtered.index[0], 'Tau']
+
+    return batch_size, hint_rate, alpha, beta, tau
+
+def get_hyperparameters(dataset, miss_rate):
     '''Get optimized hyperparameters per dataset and miss_rate.
   
   Args:

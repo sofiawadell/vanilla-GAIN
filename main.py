@@ -29,7 +29,7 @@ from sklearn.preprocessing import OneHotEncoder
 from data_loader import data_loader
 from gain_v1 import gain_v1
 from gain_v2 import gain_v2
-from utils import get_hyperparameters, rmse_num_loss, rmse_cat_loss, pfc, m_rmse_loss, find_average_and_st_dev, round_if_not_none
+from utils import get_hyperparameters, get_hyperparameters_v2, rmse_num_loss, rmse_cat_loss, pfc, m_rmse_loss, find_average_and_st_dev, round_if_not_none
 from datasets import datasets
 
 def main (args):
@@ -215,25 +215,17 @@ if __name__ == '__main__':
           args.data_name = dataset
           args.miss_rate = miss_rate
           args.extra_amount = extra_amount
-          args.iterations = 3000
-          args.number_of_runs = 1
+          args.iterations = 10000
+          args.number_of_runs = 10
 
-          if args.extra_amount == 0:
-            case = "ordinary_case"
-          elif args.extra_amount == 50:
-            case = "extra_50"
-          elif args.extra_amount == 100:
-            case = "extra_100"
-          else:
-            ValueError("Extra amount not chosen correctly, chose 0, 50 or 100")
-
-          args.batch_size, args.hint_rate, args.alpha = get_hyperparameters(dataset, miss_rate, extra_amount)
+          #args.batch_size, args.hint_rate, args.alpha = get_hyperparameters(dataset, miss_rate)
+          args.batch_size, args.hint_rate, args.alpha, args.beta, args.tau = get_hyperparameters_v2(dataset, miss_rate)
 
           #args.batch_size = 256
           #args.hint_rate = 0.1
           #args.alpha = 100
-          args.beta = 0.7
-          args.tau = 0.5
+          #args.beta = 0.7
+          #args.tau = 0.5
 
           # Calls main function  
           best_imputed_data, average_m_rmse, st_dev_m_rmse, average_rmse_num, st_dev_rmse_num, average_rmse_cat, st_dev_rmse_cat, average_pfc, st_dev_pfc, average_exec_time, st_dev_exec_time = main(args)
@@ -244,7 +236,7 @@ if __name__ == '__main__':
           df_results = df_results.append(results, ignore_index=True)
   
   # Save result to csv
-  #df_results.to_csv('imputed_data/summary.csv', index=False)
+  df_results.to_csv('imputed_data/summary.csv', index=False)
 
 '''
 ORIGINAL CODE
