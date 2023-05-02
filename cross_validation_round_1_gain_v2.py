@@ -61,14 +61,14 @@ def cross_validation_GAIN(data_name, miss_rate, extra_amount):
     train_ori_data_x, train_miss_data_x, train_data_m, \
     _, _, _, norm_params_imputation, norm_params_evaluation, _ = data_loader(data_name, miss_rate, extra_amount) 
 
-    batch_size, hint_rate, alpha = get_hyperparameters(data_name, miss_rate, extra_amount)
+    batch_size, hint_rate, alpha = get_hyperparameters(data_name, miss_rate)
 
     # Define the range of hyperparameters to search over
     param_grid = {'batch_size': [batch_size],
                   'hint_rate': [hint_rate],
                   'alpha': [alpha],
-                  'beta': [0.01, 0.1, 0.5, 1, 10, 50],
-                  'tau': [0.1, 0.5, 1, 5, 10],
+                  'beta': [0.01, 0.1, 0.5, 1, 10, 25, 50, 100],
+                  'tau': [0.1, 0.5, 1, 5, 10, 20],
                   'iterations': [3000]}
     param_combinations = product(*param_grid.values())
 
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     
     # Set dataset and missrate
     all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
-    all_datasets = ["news"]
+    all_datasets = ["mushroom", "letter", "bank"]
     all_missingness = [10, 30, 50]
     all_extra_amounts = [0]   # only applicable to 0% extra CTGAN data
 

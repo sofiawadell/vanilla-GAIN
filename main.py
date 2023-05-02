@@ -100,11 +100,11 @@ def main (args):
   for i, result in enumerate(results):
     test_imputed_data = result['data']
     if extra_amount == 0:
-      filename = 'imputed_data/{}/{}_{}_wo_target_{}.csv'.format(data_name, data_name, miss_rate, i)
+      filename = 'imputed_data/{}/{}_{}_wo_target_{}_v2.csv'.format(data_name, data_name, miss_rate, i)
     else: 
-      filename = 'imputed_data/{}/{}_{}_wo_target_extra_{}_{}.csv'.format(data_name, data_name, miss_rate, extra_amount, i)
+      filename = 'imputed_data/{}/{}_{}_wo_target_extra_{}_{}_v2.csv'.format(data_name, data_name, miss_rate, extra_amount, i)
     df = pd.DataFrame(test_imputed_data, columns=column_names)
-    #df.to_csv(filename, index=False)
+    df.to_csv(filename, index=False)
   
   best_imputed_data = min(results, key=lambda x: x['scores']['mRMSE'])['data']
   average_m_rmse, st_dev_m_rmse = map(round_if_not_none, find_average_and_st_dev([x['scores']['mRMSE'] for x in results]))
@@ -190,12 +190,10 @@ if __name__ == '__main__':
   
   args = parser.parse_args() 
 
-  all_datasets = ["mushroom", "letter", "bank", "credit", "news"]
+  all_datasets = ["credit"]
   all_miss_rates = [10, 30, 50]
   all_extra_amounts = [0, 50, 100]
 
-  all_datasets = ["mushroom"]
-  all_extra_amounts = [0]
 
   df_results = pd.DataFrame(columns=['Dataset', 'Missing%', 'Additional CTGAN data%', 'Average mRMSE',
                     'St Dev mRMSE', 'Average RMSE num', 'St Dev RMSE num', 'Average RMSE cat', 'St Dev RMSE cat', 
@@ -215,7 +213,7 @@ if __name__ == '__main__':
           args.data_name = dataset
           args.miss_rate = miss_rate
           args.extra_amount = extra_amount
-          args.iterations = 10000
+          args.iterations = 3000
           args.number_of_runs = 10
 
           #args.batch_size, args.hint_rate, args.alpha = get_hyperparameters(dataset, miss_rate)
@@ -224,8 +222,8 @@ if __name__ == '__main__':
           #args.batch_size = 256
           #args.hint_rate = 0.1
           #args.alpha = 100
-          #args.beta = 0.7
-          #args.tau = 0.5
+          #args.beta = 0.1
+          #args.tau = 1
 
           # Calls main function  
           best_imputed_data, average_m_rmse, st_dev_m_rmse, average_rmse_num, st_dev_rmse_num, average_rmse_cat, st_dev_rmse_cat, average_pfc, st_dev_pfc, average_exec_time, st_dev_exec_time = main(args)

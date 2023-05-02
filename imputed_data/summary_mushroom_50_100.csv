@@ -1,0 +1,5 @@
+Dataset,Missing%,Additional CTGAN data%,Average mRMSE,St Dev mRMSE,Average RMSE num,St Dev RMSE num,Average RMSE cat,St Dev RMSE cat,Average PFC (%),St Dev PFC (%),Average execution time (s),St Dev execution time (s)
+mushroom,10,50,0.3549,0.0094,,,0.3549,0.0094,12.6049,0.6672,94.5448,7.165
+mushroom,10,100,0.3563,0.0094,,,0.3563,0.0094,12.7033,0.6808,98.4475,5.1208
+mushroom,30,50,0.2998,0.0029,,,0.2998,0.0029,8.9904,0.1724,608.4699,1327.419
+mushroom,30,100,0.3023,0.0024,,,0.3023,0.0024,9.14,0.1479,154.1308,36.4408
